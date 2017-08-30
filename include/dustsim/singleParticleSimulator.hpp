@@ -53,6 +53,7 @@ public:
      * @param[in] aTimeStep                   Time step for integration                          [s]
      * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
+     * @param[in] aMetadataFilePath           Path to output file for metadata
      * @param[in] aStateHistoryFilePath       Path to output file for state history
      */
     SingleParticleSimulatorInput( const Real            aGravitationalParameter,
@@ -64,6 +65,7 @@ public:
                                   const Real            aTimeStep,
                                   const Real            aRelativeTolerance,
                                   const Real            anAbsoluteTolerance,
+                                  const std::string&    aMetadataFilePath,
                                   const std::string&    aStateHistoryFilePath )
         : gravitationalParameter( aGravitationalParameter ),
           j2Coefficient( aJ2Coefficient ),
@@ -74,6 +76,7 @@ public:
           timeStep( aTimeStep ),
           relativeTolerance( aRelativeTolerance ),
           absoluteTolerance( anAbsoluteTolerance ),
+          metadataFilePath( aMetadataFilePath ),
           stateHistoryFilePath( aStateHistoryFilePath )
     { }
 
@@ -103,6 +106,9 @@ public:
 
     //! Absolute tolerance for numerical integrator [-].
     const Real absoluteTolerance;
+
+    //! Metadata file path.
+    const std::string metadataFilePath;
 
     //! State history file path.
     const std::string stateHistoryFilePath;

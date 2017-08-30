@@ -56,6 +56,44 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
 
+    // Write metadata to file.
+    std::ofstream metadataFile( input.metadataFilePath );
+    print( metadataFile, "gravitational_parameter", input.gravitationalParameter, "km^{3} s^{-2}" );
+    metadataFile << std::endl;
+    print( metadataFile, "j2_coefficient", input.j2Coefficient, "-" );
+    metadataFile << std::endl;
+    print( metadataFile, "equatorial_radius", input.equatorialRadius, "km" );
+    metadataFile << std::endl;
+    std::ostringstream initialKeplerStateString;
+    initialKeplerStateString << input.initialStateKeplerianElements[ astro::semiMajorAxisIndex ];
+    initialKeplerStateString << "; ";
+    initialKeplerStateString << input.initialStateKeplerianElements[ astro::eccentricityIndex ];
+    initialKeplerStateString << "; ";
+    initialKeplerStateString
+        << sml::convertRadiansToDegrees(
+            input.initialStateKeplerianElements[ astro::inclinationIndex ] );
+    initialKeplerStateString << "; ";
+    initialKeplerStateString
+        << sml::convertRadiansToDegrees(
+            input.initialStateKeplerianElements[ astro::argumentOfPeriapsisIndex ] );
+    initialKeplerStateString << "; ";
+    initialKeplerStateString
+        << sml::convertRadiansToDegrees(
+            input.initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ] );
+    initialKeplerStateString << "; ";
+    initialKeplerStateString
+        << sml::convertRadiansToDegrees(
+            input.initialStateKeplerianElements[ astro::trueAnomalyIndex ] );
+    print( metadataFile, "initial_state_kepler", initialKeplerStateString.str( ), "km | deg" );
+    metadataFile << std::endl;
+    print( metadataFile, "start_epoch", input.startEpoch, "s" );
+    metadataFile << std::endl;
+    print( metadataFile, "end_epoch", input.endEpoch, "s" );
+    metadataFile << std::endl;
+    print( metadataFile, "time_step", input.timeStep, "s" );
+    metadataFile << std::endl;
+
+
     // Create file stream to write state history to.
     std::ofstream stateHistoryFile( input.stateHistoryFilePath );
     stateHistoryFile << "t,x,y,z,xdot,ydot,zdot,a,e,i,aop,raan,ta" << std::endl;
@@ -135,6 +173,9 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     std::cout << "Absolute tolerance            " << absoluteTolerance << " [-]" << std::endl;
 
     // Extract file writer settings.
+    const std::string metadataFilePath
+        = find( config, "metadata_file_path" )->value.GetString( );
+    std::cout << "Metadata file path            " << metadataFilePath << std::endl;
     const std::string stateHistoryFilePath
         = find( config, "state_history_file_path" )->value.GetString( );
     std::cout << "State history file path       " << stateHistoryFilePath << std::endl;
@@ -148,6 +189,7 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
                                          timeStep,
                                          relativeTolerance,
                                          absoluteTolerance,
+                                         metadataFilePath,
                                          stateHistoryFilePath );
 }
 

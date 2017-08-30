@@ -19,7 +19,7 @@
 
     // Set initial state of dust particle in Keplerian elements at start of simulation.
     // (sma [km], e, i [deg], aop [deg], raan [deg], ta [deg])
-    "initial_state_kepler"              : [97736.0, 1.0e-3, 0.0, 0.0, 0.0, 0.0],
+    "initial_state_kepler"              : [97736.0, 1.0e-3, 10.0, 35.0, 300.0, 26.0],
 
     // // Set up integrator parameters.
     "start_epoch"                       : 0.0,
@@ -29,5 +29,6 @@
     "absolute_tolerance"                : 1.0e-12,
 
     // Set up file writer options.
-    "state_history_file_path"           : "/Users/kartikkumar/Desktop/state_history_file.csv"
+    "metadata_file_path"                : "/Users/kartikkumar/Desktop/metadata.csv",
+    "state_history_file_path"           : "/Users/kartikkumar/Desktop/state_history.csv"
 }
