@@ -43,7 +43,8 @@ public:
     /*!
      * Constructure state history writer to write state history to a user-defined output stream.
      *
-     * @param[in] aStateHistoryStream   Output stream
+     * @param[in] aStateHistoryStream       Output stream
+     * @param[in] aGravitationalParameter   Gravitation parameter of central body [km^3 s^-2]
      */
 
     StateHistoryWriter( std::ostream& aStateHistoryStream,
