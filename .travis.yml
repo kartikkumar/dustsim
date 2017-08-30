@@ -37,7 +37,6 @@ addons:
     branch_pattern: coverity_scan
 
 before_install:
-  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - bash scripts/install_cmake.sh
   - bash scripts/install_doxygen.sh
   - chmod ugo+x scripts/check_doxygen.sh
