@@ -27,6 +27,11 @@ matrix:
       env: COVERITY_SCAN_BRANCH_PATTERN=coverity_scan BUILD_TYPE=Release
 
 addons:
+  apt:
+    packages:
+      - texlive
+      - libboost-all-dev
+      - libgsl0-dev
   coverity_scan:
     project:
       name: "kartikkumar/dustsim"
