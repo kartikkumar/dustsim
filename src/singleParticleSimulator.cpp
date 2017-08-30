@@ -4,7 +4,7 @@
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
-// #include <fstream>
+#include <fstream>
 #include <iostream>
 
 #include <boost/numeric/odeint.hpp>
@@ -12,6 +12,7 @@
 #include <astro/astro.hpp>
 
 #include "dustsim/dynamicalSystem.hpp"
+#include "dustsim/outputWriter.hpp"
 #include "dustsim/singleParticleSimulator.hpp"
 #include "dustsim/tools.hpp"
 
@@ -44,8 +45,8 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     // Set current state to initial state.
     State currentState = initialState;
 
-    // Set current epoch to start epoch.
-    Real currentEpoch = input.startEpoch;
+    // // Set current epoch to start epoch.
+    // Real currentEpoch = input.startEpoch;
 
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
@@ -54,6 +55,23 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
                               input.equatorialRadius );
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
+
+    // Create file stream to write state history to.
+    std::ofstream stateHistoryFile( input.stateHistoryFilePath );
+    stateHistoryFile << "t,x,y,z,xdot,ydot,zdot,a,e,i,aop,raan,ta" << std::endl;
+    StateHistoryWriter writer( stateHistoryFile,
+                               input.gravitationalParameter );
+
+    // Set up numerical integrator.
+    std::cout << "Setting up numerical integrator ..." << std::endl;
+    boost::numeric::odeint::integrate_const( boost::numeric::odeint::runge_kutta4< State >(),
+                                             dynamics,
+                                             currentState,
+                                             input.startEpoch,
+                                             input.endEpoch,
+                                             input.timeStep,
+                                             writer  );
+    std::cout << "Numerical integrator set up successfully!" << std::endl;
 }
 
 //! Check input parameters for single_particle_simulator application mode.
