@@ -1,0 +1,33 @@
+// Copyright (c) 2017, K. Kumar, Delft University of Technology (me@kartikkumar.com)
+// Distributed under the MIT License.
+// See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
+
+// Configuration file for dustsim.
+{
+    "mode"                              : "single_particle_simulator",
+
+    // Set gravitational parameter of the central body [km^3 s^-2].
+    "gravitational_parameter"           : 5.793939e6,
+
+    // Set J2 coefficient of spherical harmonics expansion of gravity field.
+   "j2_coefficient"                     : 0.0,
+    // "j2_coefficient"                    : 0.012,
+
+    // Set equatorial radius corresponding to spherical harmonics expansion of graivty field [km].
+    // "equatorial_radius"                 : 25559.0,
+    "equatorial_radius"                 : 0.0,
+
+    // Set initial state of dust particle in Keplerian elements at start of simulation.
+    // (sma [km], e, i [deg], aop [deg], raan [deg], ta [deg])
+    "initial_state_kepler"              : [97736.0, 1.0e-3, 0.0, 0.0, 0.0, 0.0],
+
+    // // Set up integrator parameters.
+    "start_epoch"                       : 0.0,
+    "end_epoch"                         : 86400.0,
+    "time_step"                         : 10.0,
+    "relative_tolerance"                : 1.0e-10,
+    "absolute_tolerance"                : 1.0e-12,
+
+    // Set up file writer options.
+    "state_history_file_path"           : "/Users/kartikkumar/Desktop/state_history_file.csv"
+}
