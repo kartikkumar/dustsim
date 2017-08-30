@@ -4,7 +4,7 @@
 
 # Set project source files.
 set(SRC
-  # "${SRC_PATH}/singleParticleSimulator.cpp"
+  "${SRC_PATH}/singleParticleSimulator.cpp"
   "${SRC_PATH}/tools.cpp"
 )
 

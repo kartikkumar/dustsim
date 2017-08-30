@@ -13,7 +13,7 @@
 
 #include <rapidjson/document.h>
 
-// #include "dustsim/singleParticleSimulator.hpp"
+#include "dustsim/singleParticleSimulator.hpp"
 
 int main( const int numberOfInputs, const char* inputArguments[ ] )
 {
@@ -82,7 +82,7 @@ int main( const int numberOfInputs, const char* inputArguments[ ] )
     if ( mode.compare( "single_particle_simulator") == 0 )
     {
         std::cout << "Mode                          " << mode << std::endl;
-        // dustsim::executeSingleParticleSimulator( config );
+        dustsim::executeSingleParticleSimulator( config );
     }
     else if ( mode.compare( "single_particle_validator") == 0 )
     {
