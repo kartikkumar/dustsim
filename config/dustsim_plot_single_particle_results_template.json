@@ -23,7 +23,7 @@
     "show_3D_figure"            : true,
 
     // Set radius of central body for 3D plot [km].
-    "central_body_radius"       : 6371.0,
+    "central_body_radius"       : 25559.0,
 
     // Characteristics for figures.
     "figure_dpi"                : 300
