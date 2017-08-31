@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 
 #include <boost/numeric/odeint.hpp>
 
@@ -51,6 +52,7 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
     DynamicalSystem dynamics( input.gravitationalParameter,
+                              input.isJ2AccelerationModelActive,
                               input.j2Coefficient,
                               input.equatorialRadius );
     std::cout << "Dynamical model set up successfully!" << std::endl;
@@ -102,6 +104,8 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
 
     // Set up numerical integrator.
     std::cout << "Setting up numerical integrator ..." << std::endl;
+    if ( input.integrator == rk4 )
+    {
     boost::numeric::odeint::integrate_const( boost::numeric::odeint::runge_kutta4< State >(),
                                              dynamics,
                                              currentState,
@@ -109,6 +113,7 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
                                              input.endEpoch,
                                              input.timeStep,
                                              writer  );
+    }
     std::cout << "Numerical integrator set up successfully!" << std::endl;
 }
 
@@ -120,6 +125,9 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
         = find( config, "gravitational_parameter" )->value.GetDouble( );
     std::cout << "Gravitational parameter       " << gravitationalParameter
               << " [km^3 s^-2]" << std::endl;
+
+    const bool j2AcclerationModelFlag = find( config, "is_j2_active" )->value.GetBool( );
+    std::cout << "Is J2 model active?           " << j2AcclerationModelFlag << std::endl;
 
     const Real j2Coefficient = find( config, "j2_coefficient" )->value.GetDouble( );
     std::cout << "J2 coefficient                " << j2Coefficient << " [-]" << std::endl;
@@ -158,7 +166,28 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
            << initialStateKeplerianElements[ astro::trueAnomalyIndex ] << ") "
            << "[km, -, rad, rad, rad, rad]" << std::endl;
 
-     // Extract integrator time settings.
+
+    // Extract selected numerical integrator.
+    const std::string integratorString = find( config, "integrator" )->value.GetString( );
+    Integrator integrator = rk4;
+    if ( integratorString.compare( "rk4" ) != 0 )
+    {
+        if ( integratorString.compare( "rkf78" ) == 0 )
+        {
+            integrator = rkf78;
+        }
+        else
+        {
+            std::cout << std::endl;
+            std::cerr << "Selected numerical integrator \""
+                      << integratorString
+                      << "\" is incorrect!" << std::endl;
+            throw;
+        }
+    }
+    std::cout << "Integrator                    " << integratorString << std::endl;
+
+    // Extract integrator time settings.
     const Real startEpoch           = find( config, "start_epoch" )->value.GetDouble( );
     std::cout << "Start epoch                   " << startEpoch << " [s]" << std::endl;
     const Real endEpoch             = find( config, "end_epoch" )->value.GetDouble( );
@@ -181,9 +210,11 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     std::cout << "State history file path       " << stateHistoryFilePath << std::endl;
 
     return SingleParticleSimulatorInput( gravitationalParameter,
+                                         j2AcclerationModelFlag,
                                          j2Coefficient,
                                          equatorialRadius,
                                          initialStateKeplerianElements,
+                                         integrator,
                                          startEpoch,
                                          endEpoch,
                                          timeStep,

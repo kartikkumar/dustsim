@@ -9,6 +9,9 @@
     // Set gravitational parameter of the central body [km^3 s^-2].
     "gravitational_parameter"           : 5.793939e6,
 
+    // Set whether the J2 gravitational accelerational should be included.
+    "is_j2_active"                      : true,
+
     // Set J2 coefficient of spherical harmonics expansion of gravity field.
     "j2_coefficient"                    : 0.012,
     //0.012,
@@ -21,7 +24,11 @@
     // (sma [km], e, i [deg], aop [deg], raan [deg], ta [deg])
     "initial_state_kepler"              : [97736.0, 1.0e-3, 5.0, 35.0, 300.0, 26.0],
 
-    // // Set up integrator parameters.
+    // Select numerical integrator.
+    // (rk4|rkf78)
+    "integrator"                        : "error",
+
+    // Set up integrator parameters.
     "start_epoch"                       : 0.0,
     "end_epoch"                         : 86400.0,
     "time_step"                         : 10.0,

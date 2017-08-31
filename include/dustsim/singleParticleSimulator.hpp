@@ -16,6 +16,13 @@
 namespace dustsim
 {
 
+//! Define numerical integrators.
+enum Integrator
+{
+  rk4,
+  rkf78
+};
+
 //! Execute single particle simulator.
 /*!
  * Executes a single dust particle simulation.
@@ -45,9 +52,11 @@ public:
      *
      * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
      * @param[in] aGravitationalParameter     Gravitational parameter of central body    [km^3 s^-2]
+     * @param[in] aJ2AccelerationModelFlag    Flag indicating if J2 acceleration model is active
      * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
      * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
      * @param[in] anInitialKeplerState        Initial state in Keplerian elements
+     * @param[in] anIntegrator                Name of selected numerical integrator
      * @param[in] aStartEpoch                 Start epoch for integration                        [s]
      * @param[in] anEndEpoch                  End epoch for integration                          [s]
      * @param[in] aTimeStep                   Time step for integration                          [s]
@@ -57,9 +66,11 @@ public:
      * @param[in] aStateHistoryFilePath       Path to output file for state history
      */
     SingleParticleSimulatorInput( const Real            aGravitationalParameter,
+                                  const bool            aJ2AccelerationModelFlag,
                                   const Real            aJ2Coefficient,
                                   const Real            anEquatorialRadius,
                                   const State&          anInitialKeplerState,
+                                  const Integrator      anIntegrator,
                                   const Real            aStartEpoch,
                                   const Real            anEndEpoch,
                                   const Real            aTimeStep,
@@ -68,9 +79,11 @@ public:
                                   const std::string&    aMetadataFilePath,
                                   const std::string&    aStateHistoryFilePath )
         : gravitationalParameter( aGravitationalParameter ),
+          isJ2AccelerationModelActive( aJ2AccelerationModelFlag ),
           j2Coefficient( aJ2Coefficient ),
           equatorialRadius( anEquatorialRadius ),
           initialStateKeplerianElements( anInitialKeplerState ),
+          integrator( anIntegrator ),
           startEpoch( aStartEpoch ),
           endEpoch( anEndEpoch ),
           timeStep( aTimeStep ),
@@ -83,6 +96,9 @@ public:
     //! Gravitational parameter of central body [km^3 s^-2].
     const Real gravitationalParameter;
 
+    //! Boolean flag indicating if J2 acceleration model is active (true) or not (false).
+    const bool isJ2AccelerationModelActive;
+
     //! J2-coefficient (unnormalized) of spherical harmonics expansion of gravity field [-].
     const Real j2Coefficient;
 
@@ -91,6 +107,9 @@ public:
 
     //! Initial state in Keplerian elements [km, -, rad, rad, rad, rad].
     const State initialStateKeplerianElements;
+
+    //! Selected numerical integrator.
+    const Integrator integrator;
 
     //! Start epoch for simulator [s].
     const Real startEpoch;
