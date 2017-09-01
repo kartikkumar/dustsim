@@ -20,6 +20,7 @@ namespace dustsim
 enum Integrator
 {
   rk4,
+  dopri5,
   rkf78
 };
 

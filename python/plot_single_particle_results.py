@@ -131,42 +131,6 @@ for row in xrange(0,len(metadata_table)):
 plt.tight_layout()
 plt.savefig(output_path_prefix + config["2D_figure"], dpi=config["figure_dpi"])
 
-# Generate 3D figure if requested.
-if config["show_3D_figure"]:
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.set_xlabel('x [km]')
-    ax.set_ylabel('y [km]')
-    ax.set_zlabel('z [km]')
-    ax.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
-
-    # Plot sphere for the central body.
-    radius_central_body = config[ "central_body_radius" ] # km
-    u = np.linspace(0, 2 * np.pi, 100)
-    v = np.linspace(0, np.pi, 100)
-    x = radius_central_body * np.outer(np.cos(u), np.sin(v))
-    y = radius_central_body * np.outer(np.sin(u), np.sin(v))
-    z = radius_central_body * np.outer(np.ones(np.size(u)), np.cos(v))
-    ax.plot_surface(x, y, z,  rstride=4, cstride=4, color='b',edgecolors='b')
-
-    # Plot dust particle trajectory.
-    ax.plot3D(state_history['x'],state_history['y'],state_history['z'],'k')
-
-    # Create cubic bounding box to simulate equal aspect ratio.
-    X = state_history['x']
-    Y = state_history['y']
-    Z = state_history['z']
-    max_range = np.array([X.max()-X.min(), Y.max()-Y.min(), Z.max()-Z.min()]).max() / 2.0
-    mean_x = X.mean()
-    mean_y = Y.mean()
-    mean_z = Z.mean()
-    ax.set_xlim(mean_x - max_range, mean_x + max_range)
-    ax.set_ylim(mean_y - max_range, mean_y + max_range)
-    ax.set_zlim(mean_z - max_range, mean_z + max_range)
-
-    plt.grid()
-    plt.show()
-
 # Generate figure with time histories of Kepler elements.
 fig = plt.figure()
 ax1 = fig.add_subplot(2, 3, 1)
@@ -221,6 +185,42 @@ ax6.grid()
 # Save figure.
 plt.tight_layout()
 plt.savefig(output_path_prefix + config["kepler_figure"], dpi=config["figure_dpi"])
+
+# Generate 3D figure if requested.
+if config["show_3D_figure"]:
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.set_xlabel('x [km]')
+    ax.set_ylabel('y [km]')
+    ax.set_zlabel('z [km]')
+    ax.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
+
+    # Plot sphere for the central body.
+    radius_central_body = config[ "central_body_radius" ] # km
+    u = np.linspace(0, 2 * np.pi, 100)
+    v = np.linspace(0, np.pi, 100)
+    x = radius_central_body * np.outer(np.cos(u), np.sin(v))
+    y = radius_central_body * np.outer(np.sin(u), np.sin(v))
+    z = radius_central_body * np.outer(np.ones(np.size(u)), np.cos(v))
+    ax.plot_surface(x, y, z,  rstride=4, cstride=4, color='b',edgecolors='b')
+
+    # Plot dust particle trajectory.
+    ax.plot3D(state_history['x'],state_history['y'],state_history['z'],'k')
+
+    # Create cubic bounding box to simulate equal aspect ratio.
+    X = state_history['x']
+    Y = state_history['y']
+    Z = state_history['z']
+    max_range = np.array([X.max()-X.min(), Y.max()-Y.min(), Z.max()-Z.min()]).max() / 2.0
+    mean_x = X.mean()
+    mean_y = Y.mean()
+    mean_z = Z.mean()
+    ax.set_xlim(mean_x - max_range, mean_x + max_range)
+    ax.set_ylim(mean_y - max_range, mean_y + max_range)
+    ax.set_zlim(mean_z - max_range, mean_z + max_range)
+
+    plt.grid()
+    plt.show()
 
 print "Figures generated successfully!"
 print ""

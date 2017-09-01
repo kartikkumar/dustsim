@@ -106,13 +106,27 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << "Setting up numerical integrator ..." << std::endl;
     if ( input.integrator == rk4 )
     {
-    boost::numeric::odeint::integrate_const( boost::numeric::odeint::runge_kutta4< State >(),
-                                             dynamics,
-                                             currentState,
-                                             input.startEpoch,
-                                             input.endEpoch,
-                                             input.timeStep,
-                                             writer  );
+        using namespace boost::numeric::odeint;
+        integrate_const( runge_kutta4< State >( ),
+                         dynamics,
+                         currentState,
+                         input.startEpoch,
+                         input.endEpoch,
+                         input.timeStep,
+                         writer );
+    }
+    else if ( input.integrator == dopri5 )
+    {
+        using namespace boost::numeric::odeint;
+        integrate_const( make_dense_output( input.relativeTolerance,
+                                            input.absoluteTolerance,
+                                            runge_kutta_dopri5< State >( ) ),
+                         dynamics,
+                         currentState,
+                         input.startEpoch,
+                         input.endEpoch,
+                         input.timeStep,
+                         writer );
     }
     std::cout << "Numerical integrator set up successfully!" << std::endl;
 }
@@ -175,6 +189,10 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
         if ( integratorString.compare( "rkf78" ) == 0 )
         {
             integrator = rkf78;
+        }
+        else if ( integratorString.compare( "dopri5" ) == 0 )
+        {
+            integrator = dopri5;
         }
         else
         {
