@@ -8,8 +8,8 @@
 
 #include "dustsim/typedefs.hpp"
 
-#ifndef DUSTSIM_OUTPUT_WRITERS_HPP
-#define DUSTSIM_OUTPUT_WRITERS_HPP
+#ifndef DUSTSIM_OUTPUT_WRITER_HPP
+#define DUSTSIM_OUTPUT_WRITER_HPP
 
 namespace dustsim
 {
@@ -137,4 +137,4 @@ private:
 
 } // namespace dustsim
 
-#endif // DUSTSIM_OUTPUT_WRITERS_HPP
+#endif // DUSTSIM_OUTPUT_WRITER_HPP
