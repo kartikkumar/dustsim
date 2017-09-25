@@ -81,20 +81,20 @@ int main( const int numberOfInputs, const char* inputArguments[ ] )
 
     if ( mode.compare( "single_particle_simulator") == 0 )
     {
-        std::cout << "Mode                          " << mode << std::endl;
+        std::cout << "Mode                               " << mode << std::endl;
         dustsim::executeSingleParticleSimulator( config );
     }
     else if ( mode.compare( "single_particle_validator") == 0 )
     {
-        std::cout << "Mode                          " << mode << std::endl;
+        std::cout << "Mode                               " << mode << std::endl;
     }
     else if ( mode.compare( "bulk_particle_simulator") == 0 )
     {
-        std::cout << "Mode                          " << mode << std::endl;
+        std::cout << "Mode                               " << mode << std::endl;
     }
     else if ( mode.compare( "bulk_particle_validator") == 0 )
     {
-        std::cout << "Mode                          " << mode << std::endl;
+        std::cout << "Mode                               " << mode << std::endl;
     }
     else
     {

@@ -35,7 +35,7 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     // Compute initial state in Cartesian elements.
     State initialState = astro::convertKeplerianToCartesianElements(
         input.initialStateKeplerianElements, input.gravitationalParameter );
-    std::cout << "Cartesian initial state       (";
+    std::cout << "Cartesian initial state            (";
     for ( unsigned int i = 0; i < initialState.size( ) - 1; i++ )
     {
         std::cout << initialState[ i ] << ", ";
@@ -203,7 +203,7 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     initialStateKeplerianElements[ astro::trueAnomalyIndex ]
      = sml::convertDegreesToRadians(
          initialStateKeplerianElementsIterator->value[ astro::trueAnomalyIndex ].GetDouble( ) );
-    std::cout << "Initial state (Kepler)        ("
+    std::cout << "Initial state (Kepler)             ("
            << initialStateKeplerianElements[ astro::semiMajorAxisIndex ] << ", "
            << initialStateKeplerianElements[ astro::eccentricityIndex ] << ", "
            << initialStateKeplerianElements[ astro::inclinationIndex ] << ", "
@@ -239,29 +239,29 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
             throw;
         }
     }
-    std::cout << "Integrator                    " << integratorString << std::endl;
+    std::cout << "Integrator                         " << integratorString << std::endl;
 
     // Extract integrator time settings.
     const Real startEpoch           = find( config, "start_epoch" )->value.GetDouble( );
-    std::cout << "Start epoch                   " << startEpoch << " [s]" << std::endl;
+    std::cout << "Start epoch                        " << startEpoch << " [s]" << std::endl;
     const Real endEpoch             = find( config, "end_epoch" )->value.GetDouble( );
-    std::cout << "End epoch                     " << endEpoch << " [s]" << std::endl;
+    std::cout << "End epoch                          " << endEpoch << " [s]" << std::endl;
     const Real timeStep             = find( config, "time_step" )->value.GetDouble( );
-    std::cout << "Time step                     " << timeStep << " [s]" << std::endl;
+    std::cout << "Time step                          " << timeStep << " [s]" << std::endl;
 
     // Extract integrator tolerances.
     const Real relativeTolerance    = find( config, "relative_tolerance" )->value.GetDouble( );
-    std::cout << "Relative tolerance            " << relativeTolerance << " [-]" << std::endl;
+    std::cout << "Relative tolerance                 " << relativeTolerance << " [-]" << std::endl;
     const Real absoluteTolerance    = find( config, "absolute_tolerance" )->value.GetDouble( );
-    std::cout << "Absolute tolerance            " << absoluteTolerance << " [-]" << std::endl;
+    std::cout << "Absolute tolerance                 " << absoluteTolerance << " [-]" << std::endl;
 
     // Extract file writer settings.
     const std::string metadataFilePath
         = find( config, "metadata_file_path" )->value.GetString( );
-    std::cout << "Metadata file path            " << metadataFilePath << std::endl;
+    std::cout << "Metadata file path                 " << metadataFilePath << std::endl;
     const std::string stateHistoryFilePath
         = find( config, "state_history_file_path" )->value.GetString( );
-    std::cout << "State history file path       " << stateHistoryFilePath << std::endl;
+    std::cout << "State history file path            " << stateHistoryFilePath << std::endl;
 
     return SingleParticleSimulatorInput( gravitationalParameter,
                                          j2AcclerationModelFlag,
