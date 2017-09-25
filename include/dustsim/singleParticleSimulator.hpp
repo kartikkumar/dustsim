@@ -16,14 +16,6 @@
 namespace dustsim
 {
 
-//! Define numerical integrators.
-enum Integrator
-{
-  rk4,
-  dopri5,
-  rkf78
-};
-
 //! Execute single particle simulator.
 /*!
  * Executes a single dust particle simulation.
@@ -35,14 +27,13 @@ enum Integrator
  */
 void executeSingleParticleSimulator( const rapidjson::Document& config );
 
-// //! Input for single_particle_simulator application mode.
-// /*!
-//  * Data struct containing all valid input parameters to execute the single_particle_simulator
-//  * application mode. This struct is populated by the checkSingleParticleSimulatorInput() function.
-//  *
-//  * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
-//  */
-
+//! Input for single_particle_simulator application mode.
+/*!
+ * Data struct containing all valid input parameters to execute the single_particle_simulator
+ * application mode. This struct is populated by the checkSingleParticleSimulatorInput() function.
+ *
+ * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
+ */
 struct SingleParticleSimulatorInput
 {
 public:

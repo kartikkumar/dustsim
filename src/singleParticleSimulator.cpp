@@ -128,29 +128,61 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
                          input.timeStep,
                          writer );
     }
+    else if ( input.integrator == bs )
+    {
+        using namespace boost::numeric::odeint;
+        bulirsch_stoer_dense_out< State > stepper( input.absoluteTolerance,
+                                                   input.relativeTolerance );
+        integrate_const( stepper,
+                         dynamics,
+                         currentState,
+                         input.startEpoch,
+                         input.endEpoch,
+                         input.timeStep,
+                         writer );
+    }
     std::cout << "Numerical integrator set up successfully!" << std::endl;
 }
 
 //! Check input parameters for single_particle_simulator application mode.
 SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson::Document& config )
 {
-    // Extract environment model parameters.
+    // Extract central gravity model parameters.
     const Real gravitationalParameter
         = find( config, "gravitational_parameter" )->value.GetDouble( );
-    std::cout << "Gravitational parameter       " << gravitationalParameter
+    std::cout << "Gravitational parameter            " << gravitationalParameter
               << " [km^3 s^-2]" << std::endl;
 
+    // Extract J2 gravity model parameters.
     const bool j2AcclerationModelFlag = find( config, "is_j2_active" )->value.GetBool( );
-    std::cout << "Is J2 model active?           " << j2AcclerationModelFlag << std::endl;
+    std::cout << "Is J2 model active?                " << j2AcclerationModelFlag << std::endl;
 
     const Real j2Coefficient = find( config, "j2_coefficient" )->value.GetDouble( );
-    std::cout << "J2 coefficient                " << j2Coefficient << " [-]" << std::endl;
+    std::cout << "J2 coefficient                     " << j2Coefficient << " [-]" << std::endl;
 
     const Real equatorialRadius
         = find( config, "equatorial_radius" )->value.GetDouble( );
-    std::cout << "Equatorial radius             " << equatorialRadius << " [km]" << std::endl;
+    std::cout << "Equatorial radius                  " << equatorialRadius << " [km]" << std::endl;
 
-   // Extract initial state of dust particle in Keplerian elements.
+    // Extract solar radiational pressure model parameters.
+    const bool solarRadiationPressureFlag
+        = find( config, "is_solar_radiation_pressure_active" )->value.GetBool( );
+    std::cout << "Is SRP model active?               " << solarRadiationPressureFlag << std::endl;
+
+    const Real particleRadius = find( config, "particle_radius" )->value.GetDouble( );
+    std::cout << "Particle radius                    "
+              << particleRadius << " [micron]" << std::endl;
+
+    const Real particleBulkDensity = find( config, "particle_bulk_density" )->value.GetDouble( );
+    std::cout << "Particle bulk density              "
+              << particleBulkDensity << " [kg m^-3]" << std::endl;
+
+    const Real radiationPressureCoefficient
+        = find( config, "radiation_pressure_coefficient" )->value.GetDouble( );
+    std::cout << "Radiation pressure coefficient     "
+              << radiationPressureCoefficient << " [-]" << std::endl;
+
+    // Extract initial state of dust particle in Keplerian elements.
     ConfigIterator initialStateKeplerianElementsIterator = find( config, "initial_state_kepler" );
     State initialStateKeplerianElements;
     initialStateKeplerianElements[ astro::semiMajorAxisIndex ]
@@ -193,6 +225,10 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
         else if ( integratorString.compare( "dopri5" ) == 0 )
         {
             integrator = dopri5;
+        }
+        else if ( integratorString.compare( "bs" ) == 0 )
+        {
+            integrator = bs;
         }
         else
         {

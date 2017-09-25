@@ -35,6 +35,15 @@ typedef Vector6 State;
 //! JSON config iterator.
 typedef rapidjson::Value::ConstMemberIterator ConfigIterator;
 
+//! Define numerical integrators.
+enum Integrator
+{
+  rk4,
+  dopri5,
+  rkf78,
+  bs
+};
+
 } // namespace dustsim
 
 #endif // DUSTSIM_TYPEDEFS_HPP
