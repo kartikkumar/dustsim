@@ -4,31 +4,74 @@
 
 // Configuration file for dustsim.
 {
-    "mode"                              : "bulk_particle_simulator",
+    "mode"                                  : "bulk_particle_simulator",
+
+    ////
+    // Central gravity
+    ////
 
     // Set gravitational parameter of the central body [km^3 s^-2].
-    "gravitational_parameter"           : 5.793939e6,
+    "gravitational_parameter"               : 5.793939e6,
+
+    ////
+    // J2
+    ////
+
+    // Set whether the J2 gravitational acceleration model should be included.
+    "is_j2_active"                          : true,
 
     // Set J2 coefficient of spherical harmonics expansion of gravity field.
-    "j2_coefficient"                    : 0.012,
+    "j2_coefficient"                        : 0.012,
+    //0.012,
 
     // Set equatorial radius corresponding to spherical harmonics expansion of graivty field [km].
-    "equatorial_radius"                 : 25559.0,
+    "equatorial_radius"                     : 25559.0,
+    // 25559.0,
 
-    // Set initial state of dust particle in Keplerian elements at start of simulation.
-    // (sma [km], e, i [deg], aop [deg], raan [deg], ta [deg])
-    // "initial_state_kepler"              : [97736.0, 1.0e-3, 0.0, 0.0, 0.0, 0.0],
-    // Set distributions
+    ////
+    // Solar radiation pressure
+    ////
 
-    // Set up integrator time parameters [s].
-    "start_epoch"                       : 0.0,
-    "end_epoch"                         : 86400.0,
-    "time_step"                         : 10.0,
+    // Set whether the solar radiation pressure acceleration model should be included.
+    "is_solar_radiation_pressure_active"    : true,
 
-    // Set up integrator tolerances [-].
-    "relative_tolerance"                : 1.0e-10,
-    "absolute_tolerance"                : 1.0e-12,
+    // Set particle radius [micron].
+    "particle_radius"                       : 1.0,
 
-    // Set up database options.
-    "database_file_path"                : "/Users/kartikkumar/Desktop/bulk_particle_simulator.db3"
+    // Set bulk density [kg m^-3].
+    "particle_bulk_density"                 : 1000.0,
+
+    // Set radiation pressure coefficient.
+    "radiation_pressure_coefficient"        : 1.0,
+
+    // Set mean distance to the Sun [AU].
+    // "mean_solar_distance"                :
+
+    ////
+    // Initial state
+    ////
+
+    ////
+    // Numerical integrator
+    ////
+
+    // Select numerical integrator.
+    // (rk4|dopri5|rkf78|bs)
+    "integrator"                            : "bs",
+
+    // Set up integrator time parameters.
+    "start_epoch"                           : 0.0,
+    "end_epoch"                             : 86400.0,
+    "time_step"                             : 10.0,
+
+    // Set up integrator tolerances (only applicable for adaptive step size integrators).
+    "relative_tolerance"                    : 1.0e-10,
+    "absolute_tolerance"                    : 1.0e-12,
+
+    ////
+    // Output
+    ////
+
+    // Set up SQLite database options.
+    "database_file_path"                    : "/Users/kartikkumar/Desktop/test.db"
 }

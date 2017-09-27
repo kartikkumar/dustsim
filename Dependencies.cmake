@@ -7,6 +7,12 @@ include(ExternalProject)
 
 # -------------------------------
 
+# https://computing.llnl.gov/tutorials/pthreads/
+
+find_package(Threads)
+
+# -------------------------------
+
 # Boost: https://boost.org
 
 find_package(Boost)
@@ -54,6 +60,20 @@ else(NOT APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${SQLITECPP_INCLUDE_DIRS}\"")
 endif(NOT APPLE)
 link_directories(${SQLITECPP_LIBRARY_DIR})
+
+# Link against internal SQLite3 library.
+set(SQLITE3_INCLUDE_DIRS ${SQLITECPP_INCLUDE_DIRS}/../sqlite3
+  CACHE INTERNAL "Path to include folder for internal SQLite3")
+set(SQLITE3_LIBRARY_DIR ${SQLITECPP_LIBRARY_DIR}/sqlite3
+  CACHE INTERNAL "Path to library folder for SQLite3")
+set(SQLITE3_LIBRARY "sqlite3")
+
+if(NOT APPLE)
+  include_directories(SYSTEM AFTER "${SQLITE3_INCLUDE_DIRS}")
+else(NOT APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${SQLITE3_INCLUDE_DIRS}\"")
+endif(NOT APPLE)
+link_directories(${SQLITE3_LIBRARY_DIR})
 
 # -------------------------------
 
