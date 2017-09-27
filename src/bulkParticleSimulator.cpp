@@ -4,8 +4,12 @@
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
+
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
 #include <SQLiteCpp/SQLiteCpp.h>
 
@@ -23,6 +27,18 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     // Open database in read/write mode.
     SQLite::Database database( input.databaseFilePath, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE );
+
+    // Initialize random generator.
+    boost::random::mt19937 randomGenerator;
+
+    // Set up generators for initial states for dust particles.
+    boost::random::uniform_real_distribution< Real > semiMajorAxisGenerator(
+        input.semiMajorAxisMinimum, input.semiMajorAxisMaximum );
+
+    for ( int i = 0; i < input.numberOfParticles; ++i )
+    {
+        std::cout << std::setprecision( 15 ) << semiMajorAxisGenerator( randomGenerator ) << std::endl;
+    }
 }
 
 //! Check input parameters for bulk_particle_simulator application mode.
@@ -64,6 +80,19 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
         = find( config, "radiation_pressure_coefficient" )->value.GetDouble( );
     std::cout << "Radiation pressure coefficient     "
               << radiationPressureCoefficient << " [-]" << std::endl;
+
+    // Extract number of particles to simulate.
+    const Int numberOfParticles = find( config, "number_of_particles" )->value.GetInt( );
+    std::cout << "Number of particles                " << numberOfParticles << std::endl;
+
+    // Extract parameters for distribution of initial states of dust particle in Keplerian elements.
+    const Real semiMajorAxisMinimum = find( config, "semi_major_axis_minimum" )->value.GetDouble( );
+    std::cout << "Semi-major axis minimum            "
+              << semiMajorAxisMinimum << " [km]" << std::endl;
+
+    const Real semiMajorAxisMaximum = find( config, "semi_major_axis_maximum" )->value.GetDouble( );
+    std::cout << "Semi-major axis maximum            "
+              << semiMajorAxisMaximum << " [km]" << std::endl;
 
     // Extract selected numerical integrator.
     const std::string integratorString = find( config, "integrator" )->value.GetString( );
@@ -115,6 +144,9 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
                                        j2AcclerationModelFlag,
                                        j2Coefficient,
                                        equatorialRadius,
+                                       numberOfParticles,
+                                       semiMajorAxisMinimum,
+                                       semiMajorAxisMaximum,
                                        integrator,
                                        startEpoch,
                                        endEpoch,

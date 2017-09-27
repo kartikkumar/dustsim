@@ -47,6 +47,9 @@ public:
      * @param[in] aJ2AccelerationModelFlag    Flag indicating if J2 acceleration model is active
      * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
      * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
+     * @param[in] aNumberOfParticles          Number of dust particles to simulate
+     * @param[in] aSemiMajorAxisMinimum       Minimum semi-major axis for uniform distribution  [km]
+     * @param[in] aSemiMajorAxisMaximum       Maximum semi-major axis for uniform distribution  [km]
      * @param[in] anIntegrator                Name of selected numerical integrator
      * @param[in] aStartEpoch                 Start epoch for integration                        [s]
      * @param[in] anEndEpoch                  End epoch for integration                          [s]
@@ -59,6 +62,9 @@ public:
                                 const bool            aJ2AccelerationModelFlag,
                                 const Real            aJ2Coefficient,
                                 const Real            anEquatorialRadius,
+                                const Real            aNumberOfParticles,
+                                const Real            aSemiMajorAxisMinimum,
+                                const Real            aSemiMajorAxisMaximum,
                                 const Integrator      anIntegrator,
                                 const Real            aStartEpoch,
                                 const Real            anEndEpoch,
@@ -70,6 +76,9 @@ public:
           isJ2AccelerationModelActive( aJ2AccelerationModelFlag ),
           j2Coefficient( aJ2Coefficient ),
           equatorialRadius( anEquatorialRadius ),
+          numberOfParticles( aNumberOfParticles ),
+          semiMajorAxisMinimum( aSemiMajorAxisMinimum ),
+          semiMajorAxisMaximum( aSemiMajorAxisMaximum ),
           integrator( anIntegrator ),
           startEpoch( aStartEpoch ),
           endEpoch( anEndEpoch ),
@@ -90,6 +99,15 @@ public:
 
     //! Equatorial radius of central body corresponding with spherical harmonics gravity field [km].
     const Real equatorialRadius;
+
+    //! Number of dust particles to simulate.
+    const Int numberOfParticles;
+
+    //! Minimum semi-major axis corresponding to upper limit of uniform distribution [km].
+    const Real semiMajorAxisMinimum;
+
+    //! Maximum semi-major axis corresponding to upper limit of uniform distribution [km].
+    const Real semiMajorAxisMaximum;
 
     //! Selected numerical integrator.
     const Integrator integrator;

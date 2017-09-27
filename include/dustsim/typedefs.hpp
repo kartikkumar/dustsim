@@ -14,6 +14,9 @@
 namespace dustsim
 {
 
+//! Set type for integer numbers.
+typedef int Int;
+
 //! Set type for floating-point real numbers.
 typedef double Real;
 

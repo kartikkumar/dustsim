@@ -51,6 +51,13 @@
     // Initial state
     ////
 
+    // Set number of dust particles.
+    "number_of_particles"                   : 10,
+
+    // Define bounds of uniform distribution for semi-major axis.
+    "semi_major_axis_minimum"               : 96736.0,
+    "semi_major_axis_maximum"               : 98736.0,
+
     ////
     // Numerical integrator
     ////
