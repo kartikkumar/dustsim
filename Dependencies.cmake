@@ -8,6 +8,7 @@ include(ExternalProject)
 # -------------------------------
 
 # Boost: https://boost.org
+
 find_package(Boost)
 
 if(NOT APPLE)
@@ -15,6 +16,44 @@ if(NOT APPLE)
 else(APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${Boost_INCLUDE_DIRS}\"")
 endif(NOT APPLE)
+
+# -------------------------------
+
+# SQLiteCpp: https://github.com/srombauts/sqlitecpp
+
+if(NOT BUILD_DEPENDENCIES)
+  find_package(SQLiteCpp 2002000)
+endif(NOT BUILD_DEPENDENCIES)
+
+if(NOT SQLITECPP_FOUND)
+  message(STATUS "SQLiteCpp will be downloaded when ${CMAKE_PROJECT_NAME} is built")
+  ExternalProject_Add(sqlitecpp-lib
+    PREFIX ${EXTERNAL_PATH}/SQLiteCpp
+    #--Download step--------------
+    URL https://github.com/SRombauts/SQLiteCpp/archive/master.zip
+    TIMEOUT 30
+    #--Update/Patch step----------
+    #--Configure step-------------
+    #--Build step-----------------
+    BUILD_IN_SOURCE 1
+    #--Install step---------------
+    INSTALL_COMMAND ""
+    #--Output logging-------------
+    LOG_DOWNLOAD ON
+  )
+  ExternalProject_Get_Property(sqlitecpp-lib source_dir)
+  set(SQLITECPP_INCLUDE_DIRS ${source_dir}/include
+    CACHE INTERNAL "Path to include folder for SQLiteCpp")
+  set(SQLITECPP_LIBRARY_DIR ${source_dir} CACHE INTERNAL "Path to library folder for SQLiteCpp")
+  set(SQLITECPP_LIBRARY "SQLiteCpp")
+endif(NOT SQLITECPP_FOUND)
+
+if(NOT APPLE)
+  include_directories(SYSTEM AFTER "${SQLITECPP_INCLUDE_DIRS}")
+else(NOT APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${SQLITECPP_INCLUDE_DIRS}\"")
+endif(NOT APPLE)
+link_directories(${SQLITECPP_LIBRARY_DIR})
 
 # -------------------------------
 
