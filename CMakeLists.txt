@@ -96,12 +96,17 @@ add_library(${LIB_NAME} ${SRC})
 if(NOT RAPIDJSON_FOUND)
   add_dependencies(${LIB_NAME} rapidjson-lib)
 endif(NOT RAPIDJSON_FOUND)
+if(NOT SQLITECPP_FOUND)
+  add_dependencies(${LIB_NAME} sqlitecpp-lib)
+endif(NOT SQLITECPP_FOUND)
 
 if(BUILD_MAIN)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_PATH})
   add_executable(${MAIN_NAME} ${MAIN_SRC})
-  target_link_libraries(${MAIN_NAME}
+  target_link_libraries(
+    ${MAIN_NAME}
     ${LIB_NAME}
+    ${SQLITECPP_LIBRARY}
   )
 endif(BUILD_MAIN)
 
