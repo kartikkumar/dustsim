@@ -3,6 +3,7 @@
 # See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 
 cmake_minimum_required(VERSION 2.6)
+set(CMAKE_CXX_STANDARD 11)
 
 # Change this section to correspond with your project info.
 project(dustsim C CXX)
@@ -96,6 +97,9 @@ add_library(${LIB_NAME} ${SRC})
 if(NOT RAPIDJSON_FOUND)
   add_dependencies(${LIB_NAME} rapidjson-lib)
 endif(NOT RAPIDJSON_FOUND)
+if(NOT PYKEP_FOUND)
+  add_dependencies(${LIB_NAME} pykep-lib)
+endif(NOT PYKEP_FOUND)
 if(NOT SQLITECPP_FOUND)
   add_dependencies(${LIB_NAME} sqlitecpp-lib)
 endif(NOT SQLITECPP_FOUND)
@@ -106,6 +110,7 @@ if(BUILD_MAIN)
   target_link_libraries(
     ${MAIN_NAME}
     ${LIB_NAME}
+    ${PYKEP_LIBRARY}
     ${SQLITECPP_LIBRARY}
     ${SQLITE3_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}

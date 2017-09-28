@@ -113,6 +113,41 @@ endif(NOT APPLE)
 
 # -------------------------------
 
+if(NOT BUILD_DEPENDENCIES)
+  find_package(PyKEP)
+endif(NOT BUILD_DEPENDENCIES)
+
+if(NOT PYKEP_FOUND)
+  message(STATUS "PyKEP will be downloaded when ${CMAKE_PROJECT_NAME} is built")
+  ExternalProject_Add(pykep-lib
+    PREFIX ${EXTERNAL_PATH}/PyKEP
+    #--Download step--------------
+    URL https://github.com/esa/pykep/archive/master.zip
+    TIMEOUT 120
+    #--Update/Patch step----------
+    #--Configure step-------------
+    #--Build step-----------------
+    BUILD_IN_SOURCE 1
+    #--Install step---------------
+    INSTALL_COMMAND ""
+    #--Output logging-------------
+    LOG_DOWNLOAD ON
+  )
+  ExternalProject_Get_Property(pykep-lib source_dir)
+  set(PYKEP_INCLUDE_DIRS ${source_dir}/src CACHE INTERNAL "Path to include folder for PyKEP")
+  set(PYKEP_LIBRARY_DIR ${source_dir}/src CACHE INTERNAL "Path to include folder for PyKEP")
+  set(PYKEP_LIBRARY "keplerian_toolbox_static")
+endif(NOT PYKEP_FOUND)
+
+if(NOT APPLE)
+  include_directories(SYSTEM AFTER "${PYKEP_INCLUDE_DIRS}")
+else(APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${PYKEP_INCLUDE_DIRS}\"")
+endif(NOT APPLE)
+link_directories(${PYKEP_LIBRARY_DIR})
+
+# -------------------------------
+
 # sml: https://github.com/openastro/sml
 
 if(NOT BUILD_DEPENDENCIES)
