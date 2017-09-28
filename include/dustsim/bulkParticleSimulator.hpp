@@ -50,6 +50,10 @@ public:
      * @param[in] aNumberOfParticles          Number of dust particles to simulate
      * @param[in] aSemiMajorAxisMinimum       Minimum semi-major axis for uniform distribution  [km]
      * @param[in] aSemiMajorAxisMaximum       Maximum semi-major axis for uniform distribution  [km]
+     * @param[in] anEccentricityFWHM          Full-Width Half-Maximum for normal distribution of
+                                              eccentricity vector components                     [-]
+     * @param[in] anInclinationFWHM           Full-Width Half-Maximum for normal distribution of
+                                              inclination vector components                    [rad]
      * @param[in] anIntegrator                Name of selected numerical integrator
      * @param[in] aStartEpoch                 Start epoch for integration                        [s]
      * @param[in] anEndEpoch                  End epoch for integration                          [s]
@@ -65,6 +69,8 @@ public:
                                 const Real            aNumberOfParticles,
                                 const Real            aSemiMajorAxisMinimum,
                                 const Real            aSemiMajorAxisMaximum,
+                                const Real            anEccentricityFWHM,
+                                const Real            anInclinationFWHM,
                                 const Integrator      anIntegrator,
                                 const Real            aStartEpoch,
                                 const Real            anEndEpoch,
@@ -79,6 +85,8 @@ public:
           numberOfParticles( aNumberOfParticles ),
           semiMajorAxisMinimum( aSemiMajorAxisMinimum ),
           semiMajorAxisMaximum( aSemiMajorAxisMaximum ),
+          eccentricityFullWidthHalfMaximum( anEccentricityFWHM ),
+          inclinationFullWidthHalfMaximum( anInclinationFWHM ),
           integrator( anIntegrator ),
           startEpoch( aStartEpoch ),
           endEpoch( anEndEpoch ),
@@ -108,6 +116,12 @@ public:
 
     //! Maximum semi-major axis corresponding to upper limit of uniform distribution [km].
     const Real semiMajorAxisMaximum;
+
+    //! Full-Width Half-Maximum for normal distribution of eccentricity vector components [-].
+    const Real eccentricityFullWidthHalfMaximum;
+
+    //! Full-Width Half-Maximum for normal distribution of inclination vector components [-].
+    const Real inclinationFullWidthHalfMaximum;
 
     //! Selected numerical integrator.
     const Integrator integrator;

@@ -52,11 +52,17 @@
     ////
 
     // Set number of dust particles.
-    "number_of_particles"                   : 10,
+    "number_of_particles"                   : 1000,
 
     // Define bounds of uniform distribution for semi-major axis.
     "semi_major_axis_minimum"               : 96736.0,
     "semi_major_axis_maximum"               : 98736.0,
+
+    // Define Full-Width Half-Maximum for eccentricity vector components [-].
+    "eccentricity_full_width_half_maximum"  : 1.0e-3,
+
+    // Define Full-Width Half-Maximum for inclination vector [rad].
+    "inclination_full_width_half_maximum"   : 1.0e-3,
 
     ////
     // Numerical integrator
