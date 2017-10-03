@@ -56,8 +56,8 @@ public:
                                               inclination vector components                    [rad]
      * @param[in] anIntegrator                Name of selected numerical integrator
      * @param[in] aStartEpoch                 Start epoch for integration                        [s]
-     * @param[in] anEndEpoch                  End epoch for integration                          [s]
-     * @param[in] aTimeStep                   Time step for integration                          [s]
+     * @param[in] aStepSize                   Fixed step size to generate integration output     [s]
+     * @param[in] aNumberOfOutputSteps        Number of output steps requested
      * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
      * @param[in] aDatabaseFilePath           Path to SQLite database for simulation results
@@ -73,8 +73,8 @@ public:
                                 const Real            anInclinationFWHM,
                                 const Integrator      anIntegrator,
                                 const Real            aStartEpoch,
-                                const Real            anEndEpoch,
-                                const Real            aTimeStep,
+                                const Real            aStepSize,
+                                const Real            aNumberOfOutputSteps,
                                 const Real            aRelativeTolerance,
                                 const Real            anAbsoluteTolerance,
                                 const std::string&    aDatabaseFilePath )
@@ -89,8 +89,8 @@ public:
           inclinationFullWidthHalfMaximum( anInclinationFWHM ),
           integrator( anIntegrator ),
           startEpoch( aStartEpoch ),
-          endEpoch( anEndEpoch ),
-          timeStep( aTimeStep ),
+          stepSize( aStepSize ),
+          outputSteps( aNumberOfOutputSteps ),
           relativeTolerance( aRelativeTolerance ),
           absoluteTolerance( anAbsoluteTolerance ),
           databaseFilePath( aDatabaseFilePath )
@@ -129,11 +129,13 @@ public:
     //! Start epoch for simulator [s].
     const Real startEpoch;
 
-    //! End epoch for simulator [s].
-    const Real endEpoch;
+    //! Fixed step size to generate integration output [s].
+    //! (N.B.: this is NOT the internal time step taken by the integration scheme but rather the
+    //! step size between requested output points ).
+    const Real stepSize;
 
-    //! Time step for simulator [s].
-    const Real timeStep;
+    //! Number of equally-spaced output steps requested between start and end epoch.
+    const Int outputSteps;
 
     //! Relative tolerance for numerical integrator [-].
     const Real relativeTolerance;

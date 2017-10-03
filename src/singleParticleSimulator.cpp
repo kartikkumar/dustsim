@@ -103,7 +103,7 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
                                input.gravitationalParameter );
 
     // Set up numerical integrator.
-    std::cout << "Setting up numerical integrator ..." << std::endl;
+    std::cout << "Exeucting numerical integration ..." << std::endl;
     if ( input.integrator == rk4 )
     {
         using namespace boost::numeric::odeint;
@@ -141,7 +141,7 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
                          input.timeStep,
                          writer );
     }
-    std::cout << "Numerical integrator set up successfully!" << std::endl;
+    std::cout << "Numerical integrator executed successfully!" << std::endl;
 }
 
 //! Check input parameters for single_particle_simulator application mode.

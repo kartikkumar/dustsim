@@ -9,10 +9,14 @@
 #include <cmath>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/numeric/odeint.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/normal_distribution.hpp>
-
 #include <boost/random/uniform_real_distribution.hpp>
 
 #include <keplerian_toolbox.h>
@@ -24,7 +28,9 @@
 #include <sml/sml.hpp>
 
 #include "dustsim/bulkParticleSimulator.hpp"
+#include "dustsim/dynamicalSystem.hpp"
 #include "dustsim/tools.hpp"
+#include "dustsim/outputWriter.hpp"
 
 namespace dustsim
 {
@@ -79,13 +85,13 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     std::cout << std::endl;
 
     std::cout << "Setting up database ..." << std::endl;
-    std::cout << std::endl;
 
     // Open database in read/write mode.
     SQLite::Database database( input.databaseFilePath, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE );
 
     // Set names of tables in databaes.
     std::string initialStatesTableName = "initial_states";
+    std::string simulationResultsTableName = "simulation_results";
 
     std::cout << "Creating table '" << initialStatesTableName << "' ..." << std::endl;
 
@@ -93,10 +99,10 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     initialStatesDropTable << "DROP TABLE IF EXISTS " << initialStatesTableName << ";";
     database.exec( initialStatesDropTable.str( ) );
 
-    // Create input states table.
+    // Create initial states table.
     std::ostringstream initialStatesTableCreate;
     initialStatesTableCreate
-        << "CREATE TABLE initial_states ("
+        << "CREATE TABLE " << initialStatesTableName << " ("
         << "\"simulation_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
         << "\"simulated\" INTEGER NOT NULL,"
         << "\"semi_major_axis\" REAL NOT NULL,"
@@ -108,13 +114,35 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     database.exec( initialStatesTableCreate.str( ) );
 
+    std::cout << "Creating table '" << simulationResultsTableName << "' ..." << std::endl;
+
+    std::ostringstream simulationResultsDropTable;
+    simulationResultsDropTable << "DROP TABLE IF EXISTS " << simulationResultsTableName << ";";
+    database.exec( simulationResultsDropTable.str( ) );
+
+    // Create simulation results table.
+    std::ostringstream simulationResultsTableCreate;
+    simulationResultsTableCreate
+        << "CREATE TABLE " << simulationResultsTableName << " ("
+        << "\"ephemeris_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+        << "\"simulation_id\" INTEGER NOT NULL,"
+        << "\"epoch\" REAL NOT NULL,"
+        << "\"semi_major_axis\" REAL NOT NULL,"
+        << "\"eccentricity\" REAL NOT NULL,"
+        << "\"inclination\" REAL NOT NULL,"
+        << "\"argument_of_periapsis\" REAL NOT NULL,"
+        << "\"longitude_of_ascending_node\" REAL NOT NULL,"
+        << "\"true_anomaly\" REAL NOT NULL);";
+
+    database.exec( simulationResultsTableCreate.str( ) );
+
     std::cout << "Database set up successfully!" << std::endl;
     std::cout << std::endl;
 
     std::cout << "Populating initial states table ..." << std::endl;
 
-    std::ostringstream initialStatesTableInsert;
-    initialStatesTableInsert
+    std::ostringstream initialStatesInsertString;
+    initialStatesInsertString
         << "INSERT INTO '" << initialStatesTableName << "' VALUES ("
         << "NULL,"
         << ":simulated,"
@@ -126,10 +154,10 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << ":true_anomaly"
         << ");";
 
-    SQLite::Statement query( database, initialStatesTableInsert.str( ) );
+    SQLite::Statement initialStatesInsertQuery( database, initialStatesInsertString.str( ) );
 
     // Set up database transaction.
-    SQLite::Transaction initialStatesTableInsertTransaction( database );
+    SQLite::Transaction initialStatesInsertTransaction( database );
 
     for ( int i = 0; i < input.numberOfParticles ; ++i )
     {
@@ -166,23 +194,183 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         const Real trueAnomaly
             = astro::convertEccentricAnomalyToTrueAnomaly( eccentricAnomaly, eccentricity );
 
-        query.bind( ":simulated",                       0 );
-        query.bind( ":semi_major_axis",                 semiMajorAxis );
-        query.bind( ":eccentricity",                    eccentricity );
-        query.bind( ":inclination",                     inclination );
-        query.bind( ":argument_of_periapsis",           argumentOfPeriapsis );
-        query.bind( ":longitude_of_ascending_node",     longitudeOfAscendingNode );
-        query.bind( ":true_anomaly",                    trueAnomaly );
+        initialStatesInsertQuery.bind( ":simulated",                   0 );
+        initialStatesInsertQuery.bind( ":semi_major_axis",             semiMajorAxis );
+        initialStatesInsertQuery.bind( ":eccentricity",                eccentricity );
+        initialStatesInsertQuery.bind( ":inclination",                 inclination );
+        initialStatesInsertQuery.bind( ":argument_of_periapsis",       argumentOfPeriapsis );
+        initialStatesInsertQuery.bind( ":longitude_of_ascending_node", longitudeOfAscendingNode );
+        initialStatesInsertQuery.bind( ":true_anomaly",                trueAnomaly );
 
         // Execute insert query.
-        query.executeStep( );
+        initialStatesInsertQuery.executeStep( );
 
         // Reset SQL insert query.
-        query.reset( );
+        initialStatesInsertQuery.reset( );
     }
 
-        // Commit transaction.
-        initialStatesTableInsertTransaction.commit( );
+    // Commit transaction.
+    initialStatesInsertTransaction.commit( );
+
+    std::cout << "Initial states table populated successfully!" << std::endl;
+    std::cout << std::endl;
+
+    // Create instance of dynamical system.
+    std::cout << "Set up dynamical model ..." << std::endl;
+    DynamicalSystem dynamics( input.gravitationalParameter,
+                              input.isJ2AccelerationModelActive,
+                              input.j2Coefficient,
+                              input.equatorialRadius );
+    std::cout << "Dynamical model set up successfully!" << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "Running simulations ..." << std::endl;
+
+    std::ostringstream simulationResultsInsertString;
+    simulationResultsInsertString
+        << "INSERT INTO '" << simulationResultsTableName << "' VALUES ("
+        << "NULL,"
+        << ":simulation_id,"
+        << ":epoch,"
+        << ":semi_major_axis,"
+        << ":eccentricity,"
+        << ":inclination,"
+        << ":argument_of_periapsis,"
+        << ":longitude_of_ascending_node,"
+        << ":true_anomaly"
+        << ");";
+
+    SQLite::Statement simulationResultsInsertQuery(
+        database, simulationResultsInsertString.str( ) );
+
+    // Set up database transaction.
+    SQLite::Transaction simulationResultsInsertTransaction( database );
+
+    // Set up query to fetch initial states table from database.
+    std::ostringstream initialStatesFetchString;
+    initialStatesFetchString << "SELECT * FROM " << initialStatesTableName << ";";
+
+    // Set up database query.
+    SQLite::Statement initialStatesFetchQuery( database, initialStatesFetchString.str( ) );
+
+    // Fetch number of rows in initial states table in database.
+    std::ostringstream initialStatesCountQuery;
+    initialStatesCountQuery << "SELECT COUNT(*) FROM " << initialStatesTableName << ";";
+    const Int initialStatesCount = database.execAndGet( initialStatesCountQuery.str( ) );
+
+    // Loop through the table retrieved from the database, step-by-step and execute simulations.
+    for ( int row = 0; row < initialStatesCount; ++row )
+    {
+        initialStatesFetchQuery.executeStep( );
+
+        std::ostringstream integrationOutput;
+        StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
+
+        const Int   simulationId                = initialStatesFetchQuery.getColumn( 0 );
+        const Real  semiMajorAxis               = initialStatesFetchQuery.getColumn( 2 );
+        const Real  eccentricity                = initialStatesFetchQuery.getColumn( 3 );
+        const Real  inclination                 = initialStatesFetchQuery.getColumn( 4 );
+        const Real  argumentOfPeriapsis         = initialStatesFetchQuery.getColumn( 5 );
+        const Real  longitudeOfAscendingNode    = initialStatesFetchQuery.getColumn( 6 );
+        const Real  trueAnomaly                 = initialStatesFetchQuery.getColumn( 7 );
+
+        State initialStateKeplerianElements;
+        initialStateKeplerianElements[ astro::semiMajorAxisIndex ] = semiMajorAxis;
+        initialStateKeplerianElements[ astro::eccentricityIndex ] = eccentricity;
+        initialStateKeplerianElements[ astro::inclinationIndex ] = inclination;
+        initialStateKeplerianElements[ astro::argumentOfPeriapsisIndex ] = argumentOfPeriapsis;
+        initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ]
+            = longitudeOfAscendingNode;
+        initialStateKeplerianElements[ astro::trueAnomalyIndex ] = trueAnomaly;
+
+        // Compute initial state in Cartesian elements.
+        State currentState = astro::convertKeplerianToCartesianElements(
+            initialStateKeplerianElements, input.gravitationalParameter );
+
+        // Execute selected numerical integrator.
+        std::cout << "Executing numerical integration: ID " << simulationId << std::endl;
+        if ( input.integrator == rk4 )
+        {
+            using namespace boost::numeric::odeint;
+            integrate_n_steps( runge_kutta4< State >( ),
+                               dynamics,
+                               currentState,
+                               input.startEpoch,
+                               input.stepSize,
+                               input.outputSteps,
+                               writer );
+        }
+        else if ( input.integrator == dopri5 )
+        {
+            using namespace boost::numeric::odeint;
+            integrate_n_steps( make_dense_output( input.relativeTolerance,
+                                                  input.absoluteTolerance,
+                                                  runge_kutta_dopri5< State >( ) ),
+                               dynamics,
+                               currentState,
+                               input.startEpoch,
+                               input.stepSize,
+                               input.outputSteps,
+                               writer );
+        }
+        else if ( input.integrator == bs )
+        {
+            using namespace boost::numeric::odeint;
+            bulirsch_stoer_dense_out< State > stepper( input.absoluteTolerance,
+                                                       input.relativeTolerance );
+            integrate_n_steps( stepper,
+                               dynamics,
+                               currentState,
+                               input.startEpoch,
+                               input.stepSize,
+                               input.outputSteps,
+                               writer );
+        }
+        else
+        {
+            throw std::runtime_error( "Selected numerical integrator is invalid!" );
+        }
+
+        // Write output generated by numerical integrator to the simulation results table in the
+        // database.
+        const std::string output = integrationOutput.str( );
+        std::vector< std::string > lines;
+        boost::algorithm::split( lines, output, boost::is_any_of( "\n" ) );
+
+        for ( int i = 0; i < lines.size( ) - 1; ++i )
+        {
+            std::vector< std::string > stateElements;
+            boost::algorithm::split( stateElements, lines.at( i ), boost::is_any_of( "," ) );
+
+            simulationResultsInsertQuery.bind(
+                    ":simulation_id",               simulationId );
+            simulationResultsInsertQuery.bind(
+                    ":epoch",                       i * input.stepSize );
+            simulationResultsInsertQuery.bind(
+                    ":semi_major_axis",             stateElements.at( 7 ) );
+            simulationResultsInsertQuery.bind(
+                    ":eccentricity",                stateElements.at( 8 ) );
+            simulationResultsInsertQuery.bind(
+                    ":inclination",                 stateElements.at( 9 ) );
+            simulationResultsInsertQuery.bind(
+                    ":argument_of_periapsis",       stateElements.at( 10 ) );
+            simulationResultsInsertQuery.bind(
+                    ":longitude_of_ascending_node", stateElements.at( 11 ) );
+            simulationResultsInsertQuery.bind(
+                    ":true_anomaly",                stateElements.at( 12 ) );
+
+            // Execute insert query.
+            simulationResultsInsertQuery.executeStep( );
+
+            // Reset SQL insert query.
+            simulationResultsInsertQuery.reset( );
+        }
+    }
+
+    // Commit transaction.
+    simulationResultsInsertTransaction.commit( );
+
+    std::cout << "Simulations run successfully!" << std::endl;
 }
 
 //! Check input parameters for bulk_particle_simulator application mode.
@@ -279,10 +467,10 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
     // Extract integrator time settings.
     const Real startEpoch           = find( config, "start_epoch" )->value.GetDouble( );
     std::cout << "Start epoch                        " << startEpoch << " [s]" << std::endl;
-    const Real endEpoch             = find( config, "end_epoch" )->value.GetDouble( );
-    std::cout << "End epoch                          " << endEpoch << " [s]" << std::endl;
-    const Real timeStep             = find( config, "time_step" )->value.GetDouble( );
-    std::cout << "Time step                          " << timeStep << " [s]" << std::endl;
+    const Real stepSize             = find( config, "step_size" )->value.GetDouble( );
+    std::cout << "Step size                          " << stepSize << " [s]" << std::endl;
+    const Real outputSteps          = find( config, "output_steps" )->value.GetInt( );
+    std::cout << "Number of output steps             " << outputSteps << std::endl;
 
     // Extract integrator tolerances.
     const Real relativeTolerance    = find( config, "relative_tolerance" )->value.GetDouble( );
@@ -305,8 +493,8 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
                                        inclinationFullWidthHalfMaximum,
                                        integrator,
                                        startEpoch,
-                                       endEpoch,
-                                       timeStep,
+                                       stepSize,
+                                       outputSteps,
                                        relativeTolerance,
                                        absoluteTolerance,
                                        databaseFilePath );

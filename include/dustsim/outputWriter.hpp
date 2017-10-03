@@ -4,6 +4,7 @@
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
+#include <iomanip>
 #include <iostream>
 
 #include "dustsim/typedefs.hpp"
@@ -108,7 +109,8 @@ public:
         const State stateInKeplerElements
             = astro::convertCartesianToKeplerianElements( state, gravitationalParameter );
 
-        stateHistoryStream << time << ','
+        stateHistoryStream << std::setprecision( std::numeric_limits< double >::digits10 )
+                           << time << ','
                            << state[ 0 ] << ','
                            << state[ 1 ] << ','
                            << state[ 2 ] << ','

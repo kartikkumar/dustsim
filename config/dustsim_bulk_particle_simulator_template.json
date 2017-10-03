@@ -22,11 +22,9 @@
 
     // Set J2 coefficient of spherical harmonics expansion of gravity field.
     "j2_coefficient"                        : 0.012,
-    //0.012,
 
     // Set equatorial radius corresponding to spherical harmonics expansion of graivty field [km].
     "equatorial_radius"                     : 25559.0,
-    // 25559.0,
 
     ////
     // Solar radiation pressure
@@ -45,7 +43,7 @@
     "radiation_pressure_coefficient"        : 1.0,
 
     // Set mean distance to the Sun [AU].
-    // "mean_solar_distance"                :
+    "mean_solar_distance"                   : 19.2,
 
     ////
     // Initial state
@@ -73,9 +71,10 @@
     "integrator"                            : "bs",
 
     // Set up integrator time parameters.
+    // The end epoch is internally derived as: start_epoch + (step_size * output_steps).
     "start_epoch"                           : 0.0,
-    "end_epoch"                             : 86400.0,
-    "time_step"                             : 10.0,
+    "step_size"                             : 10.0,
+    "output_steps"                          : 100,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
     "relative_tolerance"                    : 1.0e-10,
@@ -86,5 +85,5 @@
     ////
 
     // Set up SQLite database options.
-    "database_file_path"                    : "/Users/kartikkumar/Desktop/test.db"
+    "database_file_path"                    : "test.db"
 }
