@@ -159,6 +159,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Set up database transaction.
     SQLite::Transaction initialStatesInsertTransaction( database );
 
+#pragma omp parallel for num_threads( input.numberOfThreads )
     for ( int i = 0; i < input.numberOfParticles ; ++i )
     {
         // Generate random semi-major axis [km].
@@ -288,7 +289,11 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
             initialStateKeplerianElements, input.gravitationalParameter );
 
         // Execute selected numerical integrator.
-        std::cout << "Executing numerical integration: ID " << simulationId << std::endl;
+#pragma omp critical( outputToConsole )
+        {
+            std::cout << "Executing numerical integration: ID " << simulationId << std::endl;
+        }
+
         if ( input.integrator == rk4 )
         {
             using namespace boost::numeric::odeint;
@@ -342,28 +347,33 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
             std::vector< std::string > stateElements;
             boost::algorithm::split( stateElements, lines.at( i ), boost::is_any_of( "," ) );
 
-            simulationResultsInsertQuery.bind(
-                    ":simulation_id",               simulationId );
-            simulationResultsInsertQuery.bind(
-                    ":epoch",                       i * input.stepSize );
-            simulationResultsInsertQuery.bind(
-                    ":semi_major_axis",             stateElements.at( 7 ) );
-            simulationResultsInsertQuery.bind(
-                    ":eccentricity",                stateElements.at( 8 ) );
-            simulationResultsInsertQuery.bind(
-                    ":inclination",                 stateElements.at( 9 ) );
-            simulationResultsInsertQuery.bind(
-                    ":argument_of_periapsis",       stateElements.at( 10 ) );
-            simulationResultsInsertQuery.bind(
-                    ":longitude_of_ascending_node", stateElements.at( 11 ) );
-            simulationResultsInsertQuery.bind(
-                    ":true_anomaly",                stateElements.at( 12 ) );
+            // To avoid locking of the database, this section is thread-critical, so will be
+            // executed one-by-one by multiple threads.
+#pragma omp critical( writeOutputToDatabase )
+            {
+                simulationResultsInsertQuery.bind(
+                        ":simulation_id",               simulationId );
+                simulationResultsInsertQuery.bind(
+                        ":epoch",                       i * input.stepSize );
+                simulationResultsInsertQuery.bind(
+                        ":semi_major_axis",             stateElements.at( 7 ) );
+                simulationResultsInsertQuery.bind(
+                        ":eccentricity",                stateElements.at( 8 ) );
+                simulationResultsInsertQuery.bind(
+                        ":inclination",                 stateElements.at( 9 ) );
+                simulationResultsInsertQuery.bind(
+                        ":argument_of_periapsis",       stateElements.at( 10 ) );
+                simulationResultsInsertQuery.bind(
+                        ":longitude_of_ascending_node", stateElements.at( 11 ) );
+                simulationResultsInsertQuery.bind(
+                        ":true_anomaly",                stateElements.at( 12 ) );
 
-            // Execute insert query.
-            simulationResultsInsertQuery.executeStep( );
+                // Execute insert query.
+                simulationResultsInsertQuery.executeStep( );
 
-            // Reset SQL insert query.
-            simulationResultsInsertQuery.reset( );
+                // Reset SQL insert query.
+                simulationResultsInsertQuery.reset( );
+            }
         }
     }
 
@@ -376,6 +386,14 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 //! Check input parameters for bulk_particle_simulator application mode.
 BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Document& config )
 {
+    // Extract number of threads to parallelize simulations using OpenMP.
+    const Int numberOfThreads = find( config, "threads" )->value.GetInt( );
+    std::cout << "Number of threads                  " << numberOfThreads << std::endl;
+
+    // Extract number of particles to simulate.
+    const Int numberOfParticles = find( config, "particles" )->value.GetInt( );
+    std::cout << "Number of particles                " << numberOfParticles << std::endl;
+
     // Extract central gravity model parameters.
     const Real gravitationalParameter
         = find( config, "gravitational_parameter" )->value.GetDouble( );
@@ -412,10 +430,6 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
         = find( config, "radiation_pressure_coefficient" )->value.GetDouble( );
     std::cout << "Radiation pressure coefficient     "
               << radiationPressureCoefficient << " [-]" << std::endl;
-
-    // Extract number of particles to simulate.
-    const Int numberOfParticles = find( config, "number_of_particles" )->value.GetInt( );
-    std::cout << "Number of particles                " << numberOfParticles << std::endl;
 
     // Extract parameters for distribution of initial states of dust particle in Keplerian elements.
     const Real semiMajorAxisMinimum = find( config, "semi_major_axis_minimum" )->value.GetDouble( );
@@ -482,11 +496,12 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
     const std::string databaseFilePath = find( config, "database_file_path" )->value.GetString( );
     std::cout << "Database file path                 " << databaseFilePath << std::endl;
 
-    return BulkParticleSimulatorInput( gravitationalParameter,
+    return BulkParticleSimulatorInput( numberOfThreads,
+                                       numberOfParticles,
+                                       gravitationalParameter,
                                        j2AcclerationModelFlag,
                                        j2Coefficient,
                                        equatorialRadius,
-                                       numberOfParticles,
                                        semiMajorAxisMinimum,
                                        semiMajorAxisMaximum,
                                        eccentricityFullWidthHalfMaximum,

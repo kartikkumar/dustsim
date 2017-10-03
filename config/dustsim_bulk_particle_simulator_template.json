@@ -4,7 +4,18 @@
 
 // Configuration file for dustsim.
 {
+    ////
+    // General
+    ////
+
+    // Set application mode.
     "mode"                                  : "bulk_particle_simulator",
+
+    // Set number of threads to parallelize simulations.
+    "threads"                               : 2,
+
+    // Set number of dust particles.
+    "particles"                             : 10,
 
     ////
     // Central gravity
@@ -49,8 +60,6 @@
     // Initial state
     ////
 
-    // Set number of dust particles.
-    "number_of_particles"                   : 1000,
 
     // Define bounds of uniform distribution for semi-major axis.
     "semi_major_axis_minimum"               : 96736.0,
@@ -73,8 +82,8 @@
     // Set up integrator time parameters.
     // The end epoch is internally derived as: start_epoch + (step_size * output_steps).
     "start_epoch"                           : 0.0,
-    "step_size"                             : 10.0,
-    "output_steps"                          : 100,
+    "step_size"                             : 3600.0,
+    "output_steps"                          : 1000,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
     "relative_tolerance"                    : 1.0e-10,

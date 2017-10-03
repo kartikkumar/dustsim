@@ -43,11 +43,12 @@ public:
      * Constructs data struct based on verified input parameters.
      *
      * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
+     * @param[in] aNumberOfThreads            Number of parallel threads
+     * @param[in] aNumberOfParticles          Number of dust particles to simulate
      * @param[in] aGravitationalParameter     Gravitational parameter of central body    [km^3 s^-2]
      * @param[in] aJ2AccelerationModelFlag    Flag indicating if J2 acceleration model is active
      * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
      * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
-     * @param[in] aNumberOfParticles          Number of dust particles to simulate
      * @param[in] aSemiMajorAxisMinimum       Minimum semi-major axis for uniform distribution  [km]
      * @param[in] aSemiMajorAxisMaximum       Maximum semi-major axis for uniform distribution  [km]
      * @param[in] anEccentricityFWHM          Full-Width Half-Maximum for normal distribution of
@@ -62,11 +63,12 @@ public:
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
      * @param[in] aDatabaseFilePath           Path to SQLite database for simulation results
      */
-    BulkParticleSimulatorInput( const Real            aGravitationalParameter,
+    BulkParticleSimulatorInput( const Real            aNumberOfThreads,
+                                const Real            aNumberOfParticles,
+                                const Real            aGravitationalParameter,
                                 const bool            aJ2AccelerationModelFlag,
                                 const Real            aJ2Coefficient,
                                 const Real            anEquatorialRadius,
-                                const Real            aNumberOfParticles,
                                 const Real            aSemiMajorAxisMinimum,
                                 const Real            aSemiMajorAxisMaximum,
                                 const Real            anEccentricityFWHM,
@@ -78,11 +80,12 @@ public:
                                 const Real            aRelativeTolerance,
                                 const Real            anAbsoluteTolerance,
                                 const std::string&    aDatabaseFilePath )
-        : gravitationalParameter( aGravitationalParameter ),
+        : numberOfThreads( aNumberOfThreads ),
+          numberOfParticles( aNumberOfParticles ),
+          gravitationalParameter( aGravitationalParameter ),
           isJ2AccelerationModelActive( aJ2AccelerationModelFlag ),
           j2Coefficient( aJ2Coefficient ),
           equatorialRadius( anEquatorialRadius ),
-          numberOfParticles( aNumberOfParticles ),
           semiMajorAxisMinimum( aSemiMajorAxisMinimum ),
           semiMajorAxisMaximum( aSemiMajorAxisMaximum ),
           eccentricityFullWidthHalfMaximum( anEccentricityFWHM ),
@@ -96,6 +99,12 @@ public:
           databaseFilePath( aDatabaseFilePath )
     { }
 
+    //! Number of threads to parallelize simulations using OpenMP.
+    const Int numberOfThreads;
+
+    //! Number of dust particles to simulate.
+    const Int numberOfParticles;
+
     //! Gravitational parameter of central body [km^3 s^-2].
     const Real gravitationalParameter;
 
@@ -107,9 +116,6 @@ public:
 
     //! Equatorial radius of central body corresponding with spherical harmonics gravity field [km].
     const Real equatorialRadius;
-
-    //! Number of dust particles to simulate.
-    const Int numberOfParticles;
 
     //! Minimum semi-major axis corresponding to upper limit of uniform distribution [km].
     const Real semiMajorAxisMinimum;
