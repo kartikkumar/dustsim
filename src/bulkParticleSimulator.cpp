@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iostream>
 #include <cmath>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -89,9 +90,37 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Open database in read/write mode.
     SQLite::Database database( input.databaseFilePath, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE );
 
-    // Set names of tables in databaes.
+    // Set names of tables in database.
+    std::string metadataTableName = "metadata";
     std::string initialStatesTableName = "initial_states";
     std::string simulationResultsTableName = "simulation_results";
+
+    std::cout << "Creating table '" << metadataTableName << "' ..." << std::endl;
+
+    std::ostringstream metadataDropTable;
+    metadataDropTable << "DROP TABLE IF EXISTS " << metadataTableName << ";";
+    database.exec( metadataDropTable.str( ) );
+
+    // Create metadata table.
+    std::ostringstream metadataTableCreate;
+    metadataTableCreate
+        << "CREATE TABLE " << metadataTableName << " ("
+        << "\"case_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+        << "\"gravitational_parameter\" REAL NOT NULL,"
+        << "\"j2_coefficient\" REAL NOT NULL,"
+        << "\"equatorial_radius\" REAL NOT NULL,"
+        << "\"semi_major_axis_minimum\" REAL NOT NULL,"
+        << "\"semi_major_axis_maximum\" REAL NOT NULL,"
+        << "\"eccentricity_full_width_half_maximum\" REAL NOT NULL,"
+        << "\"inclination_full_width_half_maximum\" REAL NOT NULL,"
+        << "\"integrator\" TEXT NOT NULL,"
+        << "\"start_epoch\" REAL NOT NULL,"
+        << "\"step_size\" REAL NOT NULL,"
+        << "\"output_steps\" REAL NOT NULL,"
+        << "\"relative_tolerance\" REAL NOT NULL,"
+        << "\"absolute_tolerance\" REAL NOT NULL);";
+
+    database.exec( metadataTableCreate.str( ) );
 
     std::cout << "Creating table '" << initialStatesTableName << "' ..." << std::endl;
 
@@ -138,6 +167,34 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     std::cout << "Database set up successfully!" << std::endl;
     std::cout << std::endl;
+
+    std::cout << "Populating metadata table ..." << std::endl;
+
+    std::ostringstream metadataInsertString;
+    metadataInsertString
+        << "INSERT INTO '" << metadataTableName << "' VALUES ("
+        << "NULL,";
+    metadataInsertString
+        << std::setprecision( std::numeric_limits< double >::digits10 )
+        << input.gravitationalParameter << ","
+        << input.j2Coefficient << ","
+        << input.equatorialRadius << ","
+        << input.semiMajorAxisMinimum << ","
+        << input.semiMajorAxisMaximum << ","
+        << input.eccentricityFullWidthHalfMaximum << ","
+        << input.inclinationFullWidthHalfMaximum << ",";
+    metadataInsertString
+        << input.integrator << ",";
+    metadataInsertString
+        << std::setprecision( std::numeric_limits< double >::digits10 )
+        << input.startEpoch << ","
+        << input.stepSize << ","
+        << input.outputSteps << ","
+        << input.relativeTolerance << ","
+        << input.absoluteTolerance
+        << ");";
+
+    database.exec( metadataInsertString.str( ) );
 
     std::cout << "Populating initial states table ..." << std::endl;
 

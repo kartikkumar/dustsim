@@ -24,7 +24,7 @@
 
     // Flag that sets whether figures should be shown (Python plotting windows pop up).
     // [true|false]
-    "show_figures"                  : true,
+    "show_figures"                  : false,
 
     // // Set radius of central body for 3D plot [km].
     // "central_body_radius"       : 25559.0,

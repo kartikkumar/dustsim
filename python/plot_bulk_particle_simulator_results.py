@@ -81,6 +81,9 @@ simulation_results = pd.read_sql("SELECT * FROM " + config['simulation_results_t
 print "Data successfully fetched!"
 print ""
 
+print math.floor(min(initial_states['semi_major_axis'])), math.ceil(max(initial_states['semi_major_axis']))
+exit(1)
+
 print "Generating figures ..."
 
 # Pre-compute useful variables.
@@ -174,6 +177,8 @@ plt.savefig(output_path_prefix + config["eccentricity_change_figure"], dpi=confi
 print "Figures generated successfully!"
 print ""
 
+print "Generating animation ..."
+
 # Generate animation of change in Keplerian elements.
 fig = plt.figure()
 ax1 = fig.add_subplot(2, 3, 1)
@@ -190,6 +195,12 @@ ax1.set_xlabel(r'$a_{0}$ [km]')
 ax1.set_ylabel(r'$\Delta a$ [km]')
 line1, = ax1.plot([],[],marker='o',color='k',linestyle='None')
 
+# ax2.set_xlim(0.0, 1.0e-2)
+# ax2.set_ylim(-1, 1)
+ax2.set_xlabel(r'$e_{0}$ [-]')
+ax2.set_ylabel(r'$\Delta e$ [-]')
+line2, = ax2.plot([],[],marker='o',color='k',linestyle='None')
+
 # Set up animation functions.
 def init():
     ax1.plot(initial_states['semi_major_axis'],zero_change,marker='o',color='k',linestyle='None')
@@ -197,28 +208,33 @@ def init():
 
 def animate(i):
     epoch = simulation_results[simulation_results['epoch'] == epochs[i]]['epoch']
+
     semi_major_axis = simulation_results[simulation_results['epoch'] == epochs[i]]['semi_major_axis']
     semi_major_axis_change = pd.DataFrame(semi_major_axis.values-initial_states['semi_major_axis'].values)
     line1.set_data(initial_states['semi_major_axis'],semi_major_axis_change)
-    return line1,
 
-# Generate animation of eccentricity change.
-# ax1.set_xlim(0.0, 1.0e-3)
-# ax1.set_ylim(-1, 1)
-ax2.set_xlabel(r'$e_{0}$ [-]')
-ax2.set_ylabel(r'$\Delta e$ [-]')
-line2, = ax2.plot([],[],marker='o',color='k',linestyle='None')
-
-# Set up animation functions.
-def init():
-    ax2.plot(initial_states['eccentricity'],zero_change,marker='o',color='k',linestyle='None')
-
-def animate(i):
-    epoch = simulation_results[simulation_results['epoch'] == epochs[i]]['epoch']
     eccentricity = simulation_results[simulation_results['epoch'] == epochs[i]]['eccentricity']
     eccentricity_change = pd.DataFrame(eccentricity.values-initial_states['eccentricity'].values)
     line2.set_data(initial_states['eccentricity'],eccentricity_change)
-    return line2,
+
+    return line1, line2
+
+# # Generate animation of eccentricity change.
+# # ax1.set_xlim(0.0, 1.0e-3)
+# # ax1.set_ylim(-1, 1)
+# ax2.set_xlabel(r'$e_{0}$ [-]')
+# ax2.set_ylabel(r'$\Delta e$ [-]')
+
+# # Set up animation functions.
+# def init():
+#     ax2.plot(initial_states['eccentricity'],zero_change,marker='o',color='k',linestyle='None')
+
+# def animate(i):
+#     epoch = simulation_results[simulation_results['epoch'] == epochs[i]]['epoch']
+#     eccentricity = simulation_results[simulation_results['epoch'] == epochs[i]]['eccentricity']
+#     eccentricity_change = pd.DataFrame(eccentricity.values-initial_states['eccentricity'].values)
+#     line2.set_data(initial_states['eccentricity'],eccentricity_change)
+#     return line2,
 
 # Generate and save animation.
 animation_data = animation.FuncAnimation(fig,animate,init_func=init,blit=False,frames=len(epochs))
