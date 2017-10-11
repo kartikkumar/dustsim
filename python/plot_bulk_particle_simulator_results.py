@@ -1,0 +1,245 @@
+'''
+Copyright (c) 2017, K. Kumar, Delft University of Technology (me@kartikkumar.com)
+Distributed under the MIT License.
+See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
+'''
+
+# Set up modules and packages.
+# Plotting
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+from matplotlib import cm
+from matplotlib.font_manager import FontProperties
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.animation as animation
+
+# I/O
+import commentjson
+import json
+from pprint import pprint
+import sqlite3
+
+# Numerical
+import math
+import numpy as np
+import pandas as pd
+
+# System
+import sys
+import time
+
+print ""
+print "------------------------------------------------------------------"
+print "                             dustsim                              "
+print "                              0.1.0                               "
+print "         Copyright (c) 2017, K. Kumar (me@kartikkumar.com)        "
+print "------------------------------------------------------------------"
+print ""
+
+# Start timer.
+start_time = time.time( )
+
+print ""
+print "******************************************************************"
+print "                          Input parameters                        "
+print "******************************************************************"
+print ""
+
+# Parse JSON configuration file.
+# Raise exception if wrong number of inputs are provided to script.
+if len(sys.argv) != 2:
+    raise Exception("Only provide a JSON config file as input!")
+
+json_data = open(sys.argv[1])
+config = commentjson.load(json_data)
+json_data.close()
+pprint(config)
+
+print ""
+print "******************************************************************"
+print "                            Operations                            "
+print "******************************************************************"
+print ""
+
+print "Fetching data from database ..."
+
+# Connect to SQLite database.
+try:
+    database = sqlite3.connect(config['database'])
+
+except sqlite3.Error, e:
+
+    print "Error %s:" % e.args[0]
+    sys.exit(1)
+
+initial_states = pd.read_sql("SELECT * FROM " + config['initial_states_table'], database)
+simulation_results = pd.read_sql("SELECT * FROM " + config['simulation_results_table'], database)
+
+print "Data successfully fetched!"
+print ""
+
+print "Generating figures ..."
+
+# Pre-compute useful variables.
+output_path_prefix = config["output_directory"] + '/'
+number_of_simulations = len(initial_states)
+epochs = simulation_results[simulation_results['simulation_id'] == 1 ]['epoch']
+zero_change = pd.DataFrame(np.zeros((number_of_simulations)))
+
+# Generate histograms for initial_states in Keplerian elements.
+fig = plt.figure()
+ax1 = fig.add_subplot(2, 3, 1)
+ax2 = fig.add_subplot(2, 3, 2)
+ax3 = fig.add_subplot(2, 3, 3)
+ax4 = fig.add_subplot(2, 3, 4)
+ax5 = fig.add_subplot(2, 3, 5)
+ax6 = fig.add_subplot(2, 3, 6)
+
+# Plot semi-major axis histogram.
+ax1.hist(initial_states['semi_major_axis']-config['semi_major_axis_reference'],color='k')
+ax1.set_xlabel('a [km]')
+ax1.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
+ax1.grid()
+
+# Plot eccentricity histogram.
+ax2.hist(initial_states['eccentricity'],color='k')
+ax2.set_xlabel('e [-]')
+ax2.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
+ax2.grid()
+
+# Plot inclination histogram.
+ax3.hist(initial_states['inclination'].apply(math.degrees),color='k')
+ax3.set_xlabel('i [deg]')
+ax3.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
+ax3.grid()
+
+# Plot argument of periapsis histogram.
+ax4.hist(initial_states['argument_of_periapsis'].apply(math.degrees),color='k')
+ax4.set_xlabel(r'$\omega$ [deg]')
+ax4.grid()
+
+# Plot longitude of ascending node histogram.
+ax5.hist(initial_states['longitude_of_ascending_node'].apply(math.degrees),color='k')
+ax5.set_xlabel(r'$\Omega$ [deg]')
+ax5.grid()
+
+# Plot true anomaly histogram.
+ax6.hist(initial_states['true_anomaly'].apply(math.degrees),color='k')
+ax6.set_xlabel(r'$\theta$ [deg]')
+ax6.grid()
+
+# Save figure.
+plt.tight_layout()
+plt.savefig(output_path_prefix + config["initial_states_figure"], dpi=config["figure_dpi"])
+
+# Generate semi-major axis change figure.
+fig = plt.figure()
+plt.xlabel(r'$a_{0}$ [km]')
+plt.ylabel(r'$\Delta a$ [km]')
+plt.grid()
+
+plt.plot(initial_states['semi_major_axis'],zero_change,marker='.',color='k',linestyle='None')
+
+for x in xrange(1,len(epochs)):
+    epoch = simulation_results[simulation_results['epoch'] == epochs[x-1]]['epoch']
+    semi_major_axis = simulation_results[simulation_results['epoch'] == epochs[x-1]]['semi_major_axis']
+    semi_major_axis_change = pd.DataFrame(semi_major_axis.values-initial_states['semi_major_axis'].values)
+    plt.plot(initial_states['semi_major_axis'],semi_major_axis_change,marker='.',color='k',linestyle='None')
+
+# Save figure.
+plt.tight_layout()
+plt.savefig(output_path_prefix + config["semi_major_axis_change_figure"], dpi=config["figure_dpi"])
+
+# Generate eccentricity change figure.
+fig = plt.figure()
+plt.xlabel(r'$e_{0}$ [-]')
+plt.ylabel(r'$\Delta e$ [-]')
+plt.grid()
+
+plt.plot(initial_states['eccentricity'],zero_change,marker='.',color='k',linestyle='None')
+
+for x in xrange(1,len(epochs)):
+    epoch = simulation_results[simulation_results['epoch'] == epochs[x-1]]['epoch']
+    eccentricity = simulation_results[simulation_results['epoch'] == epochs[x-1]]['eccentricity']
+    eccentricity_change = pd.DataFrame(eccentricity.values-initial_states['eccentricity'].values)
+    plt.plot(initial_states['eccentricity'],eccentricity_change,marker='.',color='k',linestyle='None')
+
+# Save figure.
+plt.tight_layout()
+plt.savefig(output_path_prefix + config["eccentricity_change_figure"], dpi=config["figure_dpi"])
+
+print "Figures generated successfully!"
+print ""
+
+# Generate animation of change in Keplerian elements.
+fig = plt.figure()
+ax1 = fig.add_subplot(2, 3, 1)
+ax2 = fig.add_subplot(2, 3, 2)
+ax3 = fig.add_subplot(2, 3, 3)
+ax4 = fig.add_subplot(2, 3, 4)
+ax5 = fig.add_subplot(2, 3, 5)
+ax6 = fig.add_subplot(2, 3, 6)
+
+# Generate animation of semi-major axis change.
+ax1.set_xlim(96750, 98750)
+ax1.set_ylim(-1, 1)
+ax1.set_xlabel(r'$a_{0}$ [km]')
+ax1.set_ylabel(r'$\Delta a$ [km]')
+line1, = ax1.plot([],[],marker='o',color='k',linestyle='None')
+
+# Set up animation functions.
+def init():
+    ax1.plot(initial_states['semi_major_axis'],zero_change,marker='o',color='k',linestyle='None')
+    ax2.plot(initial_states['eccentricity'],zero_change,marker='o',color='k',linestyle='None')
+
+def animate(i):
+    epoch = simulation_results[simulation_results['epoch'] == epochs[i]]['epoch']
+    semi_major_axis = simulation_results[simulation_results['epoch'] == epochs[i]]['semi_major_axis']
+    semi_major_axis_change = pd.DataFrame(semi_major_axis.values-initial_states['semi_major_axis'].values)
+    line1.set_data(initial_states['semi_major_axis'],semi_major_axis_change)
+    return line1,
+
+# Generate animation of eccentricity change.
+# ax1.set_xlim(0.0, 1.0e-3)
+# ax1.set_ylim(-1, 1)
+ax2.set_xlabel(r'$e_{0}$ [-]')
+ax2.set_ylabel(r'$\Delta e$ [-]')
+line2, = ax2.plot([],[],marker='o',color='k',linestyle='None')
+
+# Set up animation functions.
+def init():
+    ax2.plot(initial_states['eccentricity'],zero_change,marker='o',color='k',linestyle='None')
+
+def animate(i):
+    epoch = simulation_results[simulation_results['epoch'] == epochs[i]]['epoch']
+    eccentricity = simulation_results[simulation_results['epoch'] == epochs[i]]['eccentricity']
+    eccentricity_change = pd.DataFrame(eccentricity.values-initial_states['eccentricity'].values)
+    line2.set_data(initial_states['eccentricity'],eccentricity_change)
+    return line2,
+
+# Generate and save animation.
+animation_data = animation.FuncAnimation(fig,animate,init_func=init,blit=False,frames=len(epochs))
+animation_path = output_path_prefix + "test.mp4"
+animation_data.save(animation_path,fps=50,bitrate=6000)
+
+print "Animation generated successfully!"
+print ""
+
+if config['show_figures']:
+    plt.show()
+
+# Stop timer
+end_time = time.time( )
+
+print ""
+print "------------------------------------------------------------------"
+print "                         Exited successfully!                     "
+print "------------------------------------------------------------------"
+print ""
+
+# Print elapsed time
+print "(Script time: " + str("{:,g}".format(end_time - start_time)) + "s)"
+print ""

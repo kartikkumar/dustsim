@@ -1,0 +1,34 @@
+// Copyright (c) 2017, K. Kumar, Delft University of Technology (me@kartikkumar.com)
+// Distributed under the MIT License.
+// See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
+{
+    // Set path to database.
+    "database"                      : "/Users/kartikkumar/Desktop/workspace/dustsim/build/test.db",
+
+    // Set name of database table.
+    "initial_states_table"          : "initial_states",
+    "simulation_results_table"      : "simulation_results",
+
+    // Set semi-major axis reference [km].
+    "semi_major_axis_reference"     : 97736.0,
+
+    // Set directory where 2D figure is stored.
+    "output_directory"              : "/Users/kartikkumar/Desktop",
+
+    // Set filename for initial states figure.
+    "initial_states_figure"         : "initial_states.png",
+
+    // Set filename for Keplerian elements change figures.
+    "semi_major_axis_change_figure" : "semi_major_axis_change.png",
+    "eccentricity_change_figure"    : "eccentricity_change.png",
+
+    // Flag that sets whether figures should be shown (Python plotting windows pop up).
+    // [true|false]
+    "show_figures"                  : true,
+
+    // // Set radius of central body for 3D plot [km].
+    // "central_body_radius"       : 25559.0,
+
+    // Characteristics for figures.
+    "figure_dpi"                    : 300
+}
