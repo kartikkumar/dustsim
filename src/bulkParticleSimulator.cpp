@@ -216,7 +216,6 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Set up database transaction.
     SQLite::Transaction initialStatesInsertTransaction( database );
 
-#pragma omp parallel for num_threads( input.numberOfThreads )
     for ( int i = 0; i < input.numberOfParticles ; ++i )
     {
         // Generate random semi-major axis [km].
@@ -316,10 +315,14 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     initialStatesCountQuery << "SELECT COUNT(*) FROM " << initialStatesTableName << ";";
     const Int initialStatesCount = database.execAndGet( initialStatesCountQuery.str( ) );
 
+#pragma omp parallel for num_threads( input.numberOfThreads )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
     for ( int row = 0; row < initialStatesCount; ++row )
     {
-        initialStatesFetchQuery.executeStep( );
+#pragma omp critical( outputToConsole )
+        {
+            initialStatesFetchQuery.executeStep( );
+        }
 
         std::ostringstream integrationOutput;
         StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
