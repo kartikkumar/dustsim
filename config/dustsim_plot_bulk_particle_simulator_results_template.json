@@ -6,6 +6,7 @@
     "database"                      : "/Users/kartikkumar/Desktop/workspace/dustsim/build/test.db",
 
     // Set name of database table.
+    "metadata_table"                : "metadata",
     "initial_states_table"          : "initial_states",
     "simulation_results_table"      : "simulation_results",
 

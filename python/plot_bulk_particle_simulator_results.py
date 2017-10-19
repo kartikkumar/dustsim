@@ -75,14 +75,12 @@ except sqlite3.Error, e:
     print "Error %s:" % e.args[0]
     sys.exit(1)
 
+metadata = pd.read_sql("SELECT * FROM " + config['metadata_table'], database)
 initial_states = pd.read_sql("SELECT * FROM " + config['initial_states_table'], database)
 simulation_results = pd.read_sql("SELECT * FROM " + config['simulation_results_table'], database)
 
 print "Data successfully fetched!"
 print ""
-
-print math.floor(min(initial_states['semi_major_axis'])), math.ceil(max(initial_states['semi_major_axis']))
-exit(1)
 
 print "Generating figures ..."
 
@@ -181,6 +179,7 @@ print "Generating animation ..."
 
 # Generate animation of change in Keplerian elements.
 fig = plt.figure()
+plt.tight_layout()
 ax1 = fig.add_subplot(2, 3, 1)
 ax2 = fig.add_subplot(2, 3, 2)
 ax3 = fig.add_subplot(2, 3, 3)
@@ -189,8 +188,8 @@ ax5 = fig.add_subplot(2, 3, 5)
 ax6 = fig.add_subplot(2, 3, 6)
 
 # Generate animation of semi-major axis change.
-ax1.set_xlim(96750, 98750)
-ax1.set_ylim(-1, 1)
+ax1.set_xlim(metadata['semi_major_axis_minimum'][0], metadata['semi_major_axis_maximum'][0])
+ax1.set_ylim(-5.0,5.0)
 ax1.set_xlabel(r'$a_{0}$ [km]')
 ax1.set_ylabel(r'$\Delta a$ [km]')
 line1, = ax1.plot([],[],marker='o',color='k',linestyle='None')
@@ -218,23 +217,6 @@ def animate(i):
     line2.set_data(initial_states['eccentricity'],eccentricity_change)
 
     return line1, line2
-
-# # Generate animation of eccentricity change.
-# # ax1.set_xlim(0.0, 1.0e-3)
-# # ax1.set_ylim(-1, 1)
-# ax2.set_xlabel(r'$e_{0}$ [-]')
-# ax2.set_ylabel(r'$\Delta e$ [-]')
-
-# # Set up animation functions.
-# def init():
-#     ax2.plot(initial_states['eccentricity'],zero_change,marker='o',color='k',linestyle='None')
-
-# def animate(i):
-#     epoch = simulation_results[simulation_results['epoch'] == epochs[i]]['epoch']
-#     eccentricity = simulation_results[simulation_results['epoch'] == epochs[i]]['eccentricity']
-#     eccentricity_change = pd.DataFrame(eccentricity.values-initial_states['eccentricity'].values)
-#     line2.set_data(initial_states['eccentricity'],eccentricity_change)
-#     return line2,
 
 # Generate and save animation.
 animation_data = animation.FuncAnimation(fig,animate,init_func=init,blit=False,frames=len(epochs))
