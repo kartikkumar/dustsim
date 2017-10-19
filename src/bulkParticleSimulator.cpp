@@ -399,7 +399,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         std::vector< std::string > lines;
         boost::algorithm::split( lines, output, boost::is_any_of( "\n" ) );
 
-        for ( int i = 0; i < lines.size( ) - 1; ++i )
+        for ( unsigned int i = 0; i < lines.size( ) - 1; ++i )
         {
             std::vector< std::string > stateElements;
             boost::algorithm::split( stateElements, lines.at( i ), boost::is_any_of( "," ) );
