@@ -6,6 +6,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <cmath>
 #include <limits>
 #include <sstream>
@@ -439,7 +440,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
             }
         }
 
-        initialState++;
+        std::advance( initialState, 1 );
     }
 
     // // Commit transaction.
