@@ -337,21 +337,24 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         initialStates[ simulationId ] = initialStateKeplerianElements;
     }
 
-#pragma omp parallel for num_threads( input.numberOfThreads )
+    InitialStates::iterator initialState = initialStates.begin( );
+
+    #pragma omp parallel for num_threads( input.numberOfThreads )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
-    for ( InitialStates::iterator it = initialStates.begin( ); it != initialStates.end( ); it++ )
+    for ( unsigned int j = 0; j < initialStates.size( ); ++j )
     {
         // Compute initial state in Cartesian elements.
         State currentState = astro::convertKeplerianToCartesianElements(
-            it->second, input.gravitationalParameter );
+            initialState->second, input.gravitationalParameter );
 
         std::ostringstream integrationOutput;
         StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
 
         // Execute selected numerical integrator.
-#pragma omp critical( outputToConsole )
+        #pragma omp critical( outputToConsole )
         {
-            std::cout << "Executing numerical integration: ID " << it->first << std::endl;
+            std::cout << "Executing numerical integration " << j
+                      << ": ID " << initialState->first << std::endl;
         }
 
         if ( input.integrator == rk4 )
@@ -409,10 +412,10 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
             // To avoid locking of the database, this section is thread-critical, so will be
             // executed one-by-one by multiple threads.
-#pragma omp critical( writeOutputToDatabase )
+            #pragma omp critical( writeOutputToDatabase )
             {
                 simulationResultsInsertQuery.bind(
-                        ":simulation_id",               it->first );
+                        ":simulation_id",               initialState->first );
                 simulationResultsInsertQuery.bind(
                         ":epoch",                       i * input.stepSize );
                 simulationResultsInsertQuery.bind(
@@ -435,6 +438,8 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
                 simulationResultsInsertQuery.reset( );
             }
         }
+
+        initialState++;
     }
 
     // // Commit transaction.
