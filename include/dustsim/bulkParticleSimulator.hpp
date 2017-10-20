@@ -46,9 +46,15 @@ public:
      * @param[in] aNumberOfThreads            Number of parallel threads
      * @param[in] aNumberOfParticles          Number of dust particles to simulate
      * @param[in] aGravitationalParameter     Gravitational parameter of central body    [km^3 s^-2]
-     * @param[in] aJ2AccelerationModelFlag    Flag indicating if J2 acceleration model is active
+     * @param[in] aJ2AccelerationFlag         Flag indicating if J2 acceleration model is active
      * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
      * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
+     * @param[in] aRadiationPressureFlag      Flag indicating if radiation pressure acceleration
+     *                                        model is active
+     * @param[in] aParticleRadius             Radius of dust particle                       [micron]
+     * @param[in] aParticleBulkDensity        Bulk density of dust particle                [kg m^-3]
+     * @param[in] aRadiationPressureCoefficient
+     *                                        Radiation pressure coefficient                     [-]
      * @param[in] aSemiMajorAxisMinimum       Minimum semi-major axis for uniform distribution  [km]
      * @param[in] aSemiMajorAxisMaximum       Maximum semi-major axis for uniform distribution  [km]
      * @param[in] anEccentricityFWHM          Full-Width Half-Maximum for normal distribution of
@@ -66,9 +72,13 @@ public:
     BulkParticleSimulatorInput( const Real            aNumberOfThreads,
                                 const Real            aNumberOfParticles,
                                 const Real            aGravitationalParameter,
-                                const bool            aJ2AccelerationModelFlag,
+                                const bool            aJ2AccelerationFlag,
                                 const Real            aJ2Coefficient,
                                 const Real            anEquatorialRadius,
+                                const bool            aRadiationPressureFlag,
+                                const Real            aParticleRadius,
+                                const Real            aParticleBulkDensity,
+                                const Real            aRadiationPressureCoefficient,
                                 const Real            aSemiMajorAxisMinimum,
                                 const Real            aSemiMajorAxisMaximum,
                                 const Real            anEccentricityFWHM,
@@ -83,9 +93,13 @@ public:
         : numberOfThreads( aNumberOfThreads ),
           numberOfParticles( aNumberOfParticles ),
           gravitationalParameter( aGravitationalParameter ),
-          isJ2AccelerationModelActive( aJ2AccelerationModelFlag ),
+          isJ2AccelerationModelActive( aJ2AccelerationFlag ),
           j2Coefficient( aJ2Coefficient ),
           equatorialRadius( anEquatorialRadius ),
+          isRadiationPressureAccelerationModelActive( aRadiationPressureFlag ),
+          particleRadius( aParticleRadius ),
+          particleBulkDensity( aParticleBulkDensity ),
+          radiationPressureCoefficient( aRadiationPressureCoefficient ),
           semiMajorAxisMinimum( aSemiMajorAxisMinimum ),
           semiMajorAxisMaximum( aSemiMajorAxisMaximum ),
           eccentricityFullWidthHalfMaximum( anEccentricityFWHM ),
@@ -116,6 +130,19 @@ public:
 
     //! Equatorial radius of central body corresponding with spherical harmonics gravity field [km].
     const Real equatorialRadius;
+
+    //! Boolean flag indicating if radiation pressure acceleration model is active (true) or not
+    //! (false).
+    const bool isRadiationPressureAccelerationModelActive;
+
+    //! Radius of dust particle [micron].
+    const Real particleRadius;
+
+    //! Bulk density of dust particle [kg m^-3].
+    const Real particleBulkDensity;
+
+    //! Radiation pressure coefficient [-].
+    const Real radiationPressureCoefficient;
 
     //! Minimum semi-major axis corresponding to upper limit of uniform distribution [km].
     const Real semiMajorAxisMinimum;

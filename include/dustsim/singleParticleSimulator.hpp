@@ -47,6 +47,12 @@ public:
      * @param[in] aJ2AccelerationModelFlag    Flag indicating if J2 acceleration model is active
      * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
      * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
+     * @param[in] aRadiationPressureFlag      Flag indicating if radiation pressure acceleration
+     *                                        model is active
+     * @param[in] aParticleRadius             Radius of dust particle                       [micron]
+     * @param[in] aParticleBulkDensity        Bulk density of dust particle                [kg m^-3]
+     * @param[in] aRadiationPressureCoefficient
+     *                                        Radiation pressure coefficient                     [-]
      * @param[in] anInitialKeplerState        Initial state in Keplerian elements
      * @param[in] anIntegrator                Name of selected numerical integrator
      * @param[in] aStartEpoch                 Start epoch for integration                        [s]
@@ -61,6 +67,10 @@ public:
                                   const bool            aJ2AccelerationModelFlag,
                                   const Real            aJ2Coefficient,
                                   const Real            anEquatorialRadius,
+                                  const bool            aRadiationPressureFlag,
+                                  const Real            aParticleRadius,
+                                  const Real            aParticleBulkDensity,
+                                  const Real            aRadiationPressureCoefficient,
                                   const State&          anInitialKeplerState,
                                   const Integrator      anIntegrator,
                                   const Real            aStartEpoch,
@@ -74,6 +84,10 @@ public:
           isJ2AccelerationModelActive( aJ2AccelerationModelFlag ),
           j2Coefficient( aJ2Coefficient ),
           equatorialRadius( anEquatorialRadius ),
+          isRadiationPressureAccelerationModelActive( aRadiationPressureFlag ),
+          particleRadius( aParticleRadius ),
+          particleBulkDensity( aParticleBulkDensity ),
+          radiationPressureCoefficient( aRadiationPressureCoefficient ),
           initialStateKeplerianElements( anInitialKeplerState ),
           integrator( anIntegrator ),
           startEpoch( aStartEpoch ),
@@ -96,6 +110,20 @@ public:
 
     //! Equatorial radius of central body corresponding with spherical harmonics gravity field [km].
     const Real equatorialRadius;
+
+    //! Boolean flag indicating if radiation pressure acceleration model is active (true) or not
+    //! (false).
+    const bool isRadiationPressureAccelerationModelActive;
+
+    //! Radius of dust particle [micron].
+    const Real particleRadius;
+
+    //! Bulk density of dust particle [kg m^-3].
+    const Real particleBulkDensity;
+
+    //! Radiation pressure coefficient [-].
+    const Real radiationPressureCoefficient;
+
 
     //! Initial state in Keplerian elements [km, -, rad, rad, rad, rad].
     const State initialStateKeplerianElements;

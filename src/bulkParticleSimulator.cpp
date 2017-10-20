@@ -277,7 +277,11 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     DynamicalSystem dynamics( input.gravitationalParameter,
                               input.isJ2AccelerationModelActive,
                               input.j2Coefficient,
-                              input.equatorialRadius );
+                              input.equatorialRadius,
+                              input.isRadiationPressureAccelerationModelActive,
+                              input.particleRadius,
+                              input.particleBulkDensity,
+                              input.radiationPressureCoefficient );
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
 
@@ -472,11 +476,11 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
         = find( config, "equatorial_radius" )->value.GetDouble( );
     std::cout << "Equatorial radius                  " << equatorialRadius << " [km]" << std::endl;
 
-    // Extract solar radiation pressure model parameters.
-    const bool solarRadiationPressureFlag
-        = find( config, "is_solar_radiation_pressure_active" )->value.GetBool( );
+    // Extract radiation pressure model parameters.
+    const bool radiationPressureFlag
+        = find( config, "is_radiation_pressure_active" )->value.GetBool( );
     std::cout << "Is SRP model active?               "
-              << ( solarRadiationPressureFlag ? "true" : "false" ) << std::endl;
+              << ( radiationPressureFlag ? "true" : "false" ) << std::endl;
 
     const Real particleRadius = find( config, "particle_radius" )->value.GetDouble( );
     std::cout << "Particle radius                    "
@@ -562,6 +566,10 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
                                        j2AcclerationModelFlag,
                                        j2Coefficient,
                                        equatorialRadius,
+                                       radiationPressureFlag,
+                                       particleRadius,
+                                       particleBulkDensity,
+                                       radiationPressureCoefficient,
                                        semiMajorAxisMinimum,
                                        semiMajorAxisMaximum,
                                        eccentricityFullWidthHalfMaximum,

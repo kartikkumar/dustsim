@@ -38,11 +38,11 @@
     "equatorial_radius"                     : 25559.0,
 
     ////
-    // Solar radiation pressure
+    // Radiation pressure
     ////
 
-    // Set whether the solar radiation pressure acceleration model should be included.
-    "is_solar_radiation_pressure_active"    : true,
+    // Set whether the radiation pressure acceleration model should be included.
+    "is_radiation_pressure_active"          : true,
 
     // Set particle radius [micron].
     "particle_radius"                       : 1.0,

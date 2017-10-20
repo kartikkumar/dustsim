@@ -34,18 +34,32 @@ public:
      * environment.
      *
      * @param[in] aGravitationalParameter   Gravitational parameter of the central body  [km^3 s^-2]
-     * @param[in] aJ2AccelerationModelFlag  Flag indicating if J2 acceleration model is active
+     * @param[in] aJ2AccelerationFlag       Flag indicating if J2 acceleration model is active
      * @param[in] aJ2Coefficient            J2 coefficient of gravity expansion                  [-]
-     * @param[in] anEquatorialRadius        Equatiorial radius for gravity expansion          [km]
+     * @param[in] anEquatorialRadius        Equatiorial radius for gravity expansion            [km]
+     * @param[in] aRadiationPressureFlag    Flag indicating if radiation pressure acceleration
+     *                                      model is active
+     * @param[in] aParticleRadius           Radius of dust particle                         [micron]
+     * @param[in] aParticleBulkDensity      Bulk density of dust particle                   [kg m^-3]
+     * @param[in] aRadiationPressureCoefficient
+     *                                      Radiation pressure coefficient                       [-]
      */
     DynamicalSystem( const Real aGravitationalParameter,
-                     const bool aJ2AccelerationModelFlag,
+                     const bool aJ2AccelerationFlag,
                      const Real aJ2Coefficient,
-                     const Real anEquatorialRadius )
+                     const Real anEquatorialRadius,
+                     const bool aRadiationPressureFlag,
+                     const Real aParticleRadius,
+                     const Real aParticleBulkDensity,
+                     const Real aRadiationPressureCoefficient )
         : gravitationalParameter( aGravitationalParameter ),
-          isJ2AccelerationModelActive( aJ2AccelerationModelFlag ),
+          isJ2AccelerationModelActive( aJ2AccelerationFlag ),
           j2Coefficient( aJ2Coefficient ),
-          equatorialRadius( anEquatorialRadius )
+          equatorialRadius( anEquatorialRadius ),
+          isRadiationPressureAccelerationModelActive( aRadiationPressureFlag ),
+          particleRadius( aParticleRadius ),
+          particleBulkDensity( aParticleBulkDensity ),
+          radiationPressureCoefficient( aRadiationPressureCoefficient )
     { }
 
     //! Overload ()-operator to compute state derivative using dynamical system.
@@ -64,7 +78,7 @@ public:
                       Vector6& stateDerivative,
                       const double time )
     {
-        Position currentPosition = { {state[0], state[1], state[2]} };
+        const Position currentPosition = { { state[0], state[1], state[2] } };
 
         // Set the derivative fo the position elements to the current velocity elements.
         stateDerivative[ 0 ] = state[ 3 ];
@@ -72,6 +86,7 @@ public:
         stateDerivative[ 2 ] = state[ 5 ];
 
         // Compute the total acceleration acting on the system as a sum of the forces.
+        // Central body gravity is included by default.
         Vector3 acceleration
             = astro::computeCentralBodyAcceleration( gravitationalParameter, currentPosition );
 
@@ -83,6 +98,16 @@ public:
                                                                    currentPosition,
                                                                    equatorialRadius,
                                                                    j2Coefficient ) );
+        }
+
+        // Add solar radiation pressure acceleration if model is set to active.
+        if ( isRadiationPressureAccelerationModelActive )
+        {
+        //     acceleration = sml::add( acceleration,
+        //                              astro::computeJ2Acceleration( gravitationalParameter,
+        //                                                            currentPosition,
+        //                                                            equatorialRadius,
+        //                                                            j2Coefficient ) );
         }
 
         // Set the derivative of the velocity elements to the computed total acceleration.
@@ -105,6 +130,19 @@ private:
 
     //! Equatorial radius of central body corresponding with spherical harmonics gravity field [km].
     const Real equatorialRadius;
+
+    //! Boolean flag indicating if radiation pressure acceleration model is active (true) or not
+    //! (false).
+    const bool isRadiationPressureAccelerationModelActive;
+
+    //! Radius of dust particle [micron].
+    const Real particleRadius;
+
+    //! Bulk density of dust particle [kg m^-3].
+    const Real particleBulkDensity;
+
+    //! Radiation pressure coefficient [-].
+    const Real radiationPressureCoefficient;
 };
 
 } // namespace dustsim
