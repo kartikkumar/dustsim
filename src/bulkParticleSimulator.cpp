@@ -314,48 +314,44 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Set up database query.
     SQLite::Statement initialStatesFetchQuery( database, initialStatesFetchString.str( ) );
 
-    // Fetch number of rows in initial states table in database.
-    std::ostringstream initialStatesCountQuery;
-    initialStatesCountQuery << "SELECT COUNT(*) FROM " << initialStatesTableName << ";";
-    const Int initialStatesCount = database.execAndGet( initialStatesCountQuery.str( ) );
+    // Fetch initial states table in database.
+    typedef std::map< Int, State > InitialStates;
+    InitialStates initialStates;
+    while ( initialStatesFetchQuery.executeStep( ) )
+    {
+        const Int simulationId = initialStatesFetchQuery.getColumn( 0 );
+        State initialStateKeplerianElements;
+        initialStateKeplerianElements[ astro::semiMajorAxisIndex ]
+            = initialStatesFetchQuery.getColumn( 2 );
+        initialStateKeplerianElements[ astro::eccentricityIndex ]
+            = initialStatesFetchQuery.getColumn( 3 );
+        initialStateKeplerianElements[ astro::inclinationIndex ]
+            = initialStatesFetchQuery.getColumn( 4 );
+        initialStateKeplerianElements[ astro::argumentOfPeriapsisIndex ]
+            = initialStatesFetchQuery.getColumn( 5 );
+        initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ]
+            = initialStatesFetchQuery.getColumn( 6 );
+        initialStateKeplerianElements[ astro::trueAnomalyIndex ]
+            = initialStatesFetchQuery.getColumn( 7 );
+
+        initialStates[ simulationId ] = initialStateKeplerianElements;
+    }
 
 #pragma omp parallel for num_threads( input.numberOfThreads )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
-    for ( int row = 0; row < initialStatesCount; ++row )
+    for ( InitialStates::iterator it = initialStates.begin( ); it != initialStates.end( ); it++ )
     {
-#pragma omp critical( outputToConsole )
-        {
-            initialStatesFetchQuery.executeStep( );
-        }
+        // Compute initial state in Cartesian elements.
+        State currentState = astro::convertKeplerianToCartesianElements(
+            it->second, input.gravitationalParameter );
 
         std::ostringstream integrationOutput;
         StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
 
-        const Int   simulationId                = initialStatesFetchQuery.getColumn( 0 );
-        const Real  semiMajorAxis               = initialStatesFetchQuery.getColumn( 2 );
-        const Real  eccentricity                = initialStatesFetchQuery.getColumn( 3 );
-        const Real  inclination                 = initialStatesFetchQuery.getColumn( 4 );
-        const Real  argumentOfPeriapsis         = initialStatesFetchQuery.getColumn( 5 );
-        const Real  longitudeOfAscendingNode    = initialStatesFetchQuery.getColumn( 6 );
-        const Real  trueAnomaly                 = initialStatesFetchQuery.getColumn( 7 );
-
-        State initialStateKeplerianElements;
-        initialStateKeplerianElements[ astro::semiMajorAxisIndex ] = semiMajorAxis;
-        initialStateKeplerianElements[ astro::eccentricityIndex ] = eccentricity;
-        initialStateKeplerianElements[ astro::inclinationIndex ] = inclination;
-        initialStateKeplerianElements[ astro::argumentOfPeriapsisIndex ] = argumentOfPeriapsis;
-        initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ]
-            = longitudeOfAscendingNode;
-        initialStateKeplerianElements[ astro::trueAnomalyIndex ] = trueAnomaly;
-
-        // Compute initial state in Cartesian elements.
-        State currentState = astro::convertKeplerianToCartesianElements(
-            initialStateKeplerianElements, input.gravitationalParameter );
-
         // Execute selected numerical integrator.
 #pragma omp critical( outputToConsole )
         {
-            std::cout << "Executing numerical integration: ID " << simulationId << std::endl;
+            std::cout << "Executing numerical integration: ID " << it->first << std::endl;
         }
 
         if ( input.integrator == rk4 )
@@ -416,7 +412,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 #pragma omp critical( writeOutputToDatabase )
             {
                 simulationResultsInsertQuery.bind(
-                        ":simulation_id",               simulationId );
+                        ":simulation_id",               it->first );
                 simulationResultsInsertQuery.bind(
                         ":epoch",                       i * input.stepSize );
                 simulationResultsInsertQuery.bind(
@@ -441,10 +437,10 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         }
     }
 
-    // Commit transaction.
-    simulationResultsInsertTransaction.commit( );
+    // // Commit transaction.
+    // simulationResultsInsertTransaction.commit( );
 
-    std::cout << "Simulations run successfully!" << std::endl;
+    // std::cout << "Simulations run successfully!" << std::endl;
 }
 
 //! Check input parameters for bulk_particle_simulator application mode.
