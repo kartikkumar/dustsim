@@ -84,7 +84,8 @@ endif(WIN32)
 if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fopenmp")
+    set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage -fopenmp -ffast-math")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 include(Dependencies.cmake)
