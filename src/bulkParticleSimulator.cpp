@@ -117,7 +117,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "\"integrator\" TEXT NOT NULL,"
         << "\"start_epoch\" REAL NOT NULL,"
         << "\"step_size\" REAL NOT NULL,"
-        << "\"output_steps\" REAL NOT NULL,"
+        << "\"output_steps\" INTEGER NOT NULL,"
         << "\"relative_tolerance\" REAL NOT NULL,"
         << "\"absolute_tolerance\" REAL NOT NULL);";
 
@@ -275,14 +275,14 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     // Create instance of dynamical system.
     std::cout << "Set up dynamical model ..." << std::endl;
-    DynamicalSystem dynamics( input.gravitationalParameter,
-                              input.isJ2AccelerationModelActive,
-                              input.j2Coefficient,
-                              input.equatorialRadius,
-                              input.isRadiationPressureAccelerationModelActive,
-                              input.particleRadius,
-                              input.particleBulkDensity,
-                              input.radiationPressureCoefficient );
+    const DynamicalSystem dynamics( input.gravitationalParameter,
+                                    input.isJ2AccelerationModelActive,
+                                    input.j2Coefficient,
+                                    input.equatorialRadius,
+                                    input.isRadiationPressureAccelerationModelActive,
+                                    input.particleRadius,
+                                    input.particleBulkDensity,
+                                    input.radiationPressureCoefficient );
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
 
@@ -318,6 +318,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Fetch initial states table in database.
     typedef std::map< Int, State > InitialStates;
     InitialStates initialStates;
+
     while ( initialStatesFetchQuery.executeStep( ) )
     {
         const Int simulationId = initialStatesFetchQuery.getColumn( 0 );
@@ -338,25 +339,27 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         initialStates[ simulationId ] = initialStateKeplerianElements;
     }
 
-    InitialStates::iterator initialState = initialStates.begin( );
-
     #pragma omp parallel for num_threads( input.numberOfThreads )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
     for ( unsigned int j = 0; j < initialStates.size( ); ++j )
     {
-        // Compute initial state in Cartesian elements.
-        State currentState = astro::convertKeplerianToCartesianElements(
-            initialState->second, input.gravitationalParameter );
-
-        std::ostringstream integrationOutput;
-        StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
+        InitialStates::iterator initialState = initialStates.begin( );
+        std::advance( initialState, j );
+        const Int simulationId = initialState->first;
+        const State currentStateInKeplerianElements = initialState->second;
 
         // Execute selected numerical integrator.
         #pragma omp critical( outputToConsole )
         {
-            std::cout << "Executing numerical integration " << j
-                      << ": ID " << initialState->first << std::endl;
+            std::cout << "Executing simulation ID: " << simulationId << std::endl;
         }
+
+        // Compute initial state in Cartesian elements.
+        State currentState = astro::convertKeplerianToCartesianElements(
+            currentStateInKeplerianElements, input.gravitationalParameter );
+
+        std::ostringstream integrationOutput;
+        const StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
 
         if ( input.integrator == rk4 )
         {
@@ -375,12 +378,12 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
             integrate_n_steps( make_dense_output( input.relativeTolerance,
                                                   input.absoluteTolerance,
                                                   runge_kutta_dopri5< State >( ) ),
-                               dynamics,
-                               currentState,
-                               input.startEpoch,
-                               input.stepSize,
-                               input.outputSteps,
-                               writer );
+                              dynamics,
+                              currentState,
+                              input.startEpoch,
+                              input.stepSize,
+                              input.outputSteps,
+                              writer );
         }
         else if ( input.integrator == bs )
         {
@@ -408,45 +411,43 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
         for ( unsigned int i = 0; i < lines.size( ) - 1; ++i )
         {
-            std::vector< std::string > stateElements;
-            boost::algorithm::split( stateElements, lines.at( i ), boost::is_any_of( "," ) );
+           std::vector< std::string > stateElements;
+           boost::algorithm::split( stateElements, lines.at( i ), boost::is_any_of( "," ) );
 
-            // To avoid locking of the database, this section is thread-critical, so will be
-            // executed one-by-one by multiple threads.
-            #pragma omp critical( writeOutputToDatabase )
-            {
-                simulationResultsInsertQuery.bind(
-                        ":simulation_id",               initialState->first );
-                simulationResultsInsertQuery.bind(
-                        ":epoch",                       i * input.stepSize );
-                simulationResultsInsertQuery.bind(
-                        ":semi_major_axis",             stateElements.at( 7 ) );
-                simulationResultsInsertQuery.bind(
-                        ":eccentricity",                stateElements.at( 8 ) );
-                simulationResultsInsertQuery.bind(
-                        ":inclination",                 stateElements.at( 9 ) );
-                simulationResultsInsertQuery.bind(
-                        ":argument_of_periapsis",       stateElements.at( 10 ) );
-                simulationResultsInsertQuery.bind(
-                        ":longitude_of_ascending_node", stateElements.at( 11 ) );
-                simulationResultsInsertQuery.bind(
-                        ":true_anomaly",                stateElements.at( 12 ) );
+           // To avoid locking of the database, this section is thread-critical, so will be
+           // executed one-by-one by multiple threads.
+           #pragma omp critical( writeOutputToDatabase )
+           {
+               simulationResultsInsertQuery.bind(
+                       ":simulation_id",               simulationId );
+               simulationResultsInsertQuery.bind(
+                       ":epoch",                       i * input.stepSize );
+               simulationResultsInsertQuery.bind(
+                       ":semi_major_axis",             stateElements.at( 7 ) );
+               simulationResultsInsertQuery.bind(
+                       ":eccentricity",                stateElements.at( 8 ) );
+               simulationResultsInsertQuery.bind(
+                       ":inclination",                 stateElements.at( 9 ) );
+               simulationResultsInsertQuery.bind(
+                       ":argument_of_periapsis",       stateElements.at( 10 ) );
+               simulationResultsInsertQuery.bind(
+                       ":longitude_of_ascending_node", stateElements.at( 11 ) );
+               simulationResultsInsertQuery.bind(
+                       ":true_anomaly",                stateElements.at( 12 ) );
 
-                // Execute insert query.
-                simulationResultsInsertQuery.executeStep( );
+               // Execute insert query.
+               simulationResultsInsertQuery.executeStep( );
 
-                // Reset SQL insert query.
-                simulationResultsInsertQuery.reset( );
-            }
+               // Reset SQL insert query.
+               simulationResultsInsertQuery.reset( );
+           }
         }
-
-        std::advance( initialState, 1 );
     }
 
-    // // Commit transaction.
-    // simulationResultsInsertTransaction.commit( );
+    // Commit transaction.
+    simulationResultsInsertTransaction.commit( );
 
-    // std::cout << "Simulations run successfully!" << std::endl;
+    std::cout << "Simulations run successfully!" << std::endl;
 }
 
 //! Check input parameters for bulk_particle_simulator application mode.
