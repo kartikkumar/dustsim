@@ -345,6 +345,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     {
         InitialStates::iterator initialState = initialStates.begin( );
         std::advance( initialState, j );
+
         const Int simulationId = initialState->first;
         const State currentStateInKeplerianElements = initialState->second;
 
@@ -384,6 +385,19 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
                               input.stepSize,
                               input.outputSteps,
                               writer );
+        }
+        else if ( input.integrator == rkf78 )
+        {
+            using namespace boost::numeric::odeint;
+            integrate_n_steps( make_controlled( input.relativeTolerance,
+                                                input.absoluteTolerance,
+                                                runge_kutta_fehlberg78< State >( ) ),
+                               dynamics,
+                               currentState,
+                               input.startEpoch,
+                               input.stepSize,
+                               input.outputSteps,
+                               writer );
         }
         else if ( input.integrator == bs )
         {
