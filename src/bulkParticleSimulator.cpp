@@ -21,6 +21,8 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
+#include <omp.h>
+
 #include <keplerian_toolbox.h>
 
 #include <SQLiteCpp/SQLiteCpp.h>
@@ -338,8 +340,15 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
         initialStates[ simulationId ] = initialStateKeplerianElements;
     }
+    // Set up query to update completed states in initial states table once simulation has been run.
+    std::ostringstream initialStatesUpdateString;
+    initialStatesUpdateString << "UPDATE " << initialStatesTableName
+                              << " SET \"simulated\" = 1 WHERE simulation_id = :simulation_id;";
 
-    #pragma omp parallel for num_threads( input.numberOfThreads )
+    // Set up database query.
+    SQLite::Statement initialStatesUpdateQuery( database, initialStatesUpdateString.str( ) );
+
+#pragma omp parallel for num_threads( input.numberOfThreads )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
     for ( unsigned int j = 0; j < initialStates.size( ); ++j )
     {
@@ -350,7 +359,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         const State currentStateInKeplerianElements = initialState->second;
 
         // Execute selected numerical integrator.
-        #pragma omp critical( outputToConsole )
+#pragma omp critical( outputToConsole )
         {
             std::cout << "Executing simulation ID: " << simulationId << std::endl;
         }
@@ -430,7 +439,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
            // To avoid locking of the database, this section is thread-critical, so will be
            // executed one-by-one by multiple threads.
-           #pragma omp critical( writeOutputToDatabase )
+#pragma omp critical( writeOutputToDatabase )
            {
                simulationResultsInsertQuery.bind(
                        ":simulation_id",               simulationId );
@@ -454,6 +463,15 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
                // Reset SQL insert query.
                simulationResultsInsertQuery.reset( );
+
+               initialStatesUpdateQuery.bind(
+                       ":simulation_id",               simulationId );
+
+               // Execute insert query.
+               initialStatesUpdateQuery.executeStep( );
+
+               // Reset SQL insert query.
+               initialStatesUpdateQuery.reset( );
            }
         }
     }
