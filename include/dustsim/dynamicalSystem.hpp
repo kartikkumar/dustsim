@@ -93,11 +93,11 @@ public:
         // Add J2 acceleration if model is set to active.
         if ( isJ2AccelerationModelActive )
         {
-            acceleration = sml::add( acceleration,
-                                     astro::computeJ2Acceleration( gravitationalParameter,
-                                                                   currentPosition,
-                                                                   equatorialRadius,
-                                                                   j2Coefficient ) );
+            // acceleration = sml::add( acceleration,
+            //                          astro::computeJ2Acceleration( gravitationalParameter,
+            //                                                        currentPosition,
+            //                                                        equatorialRadius,
+            //                                                        j2Coefficient ) );
         }
 
         // Add solar radiation pressure acceleration if model is set to active.
