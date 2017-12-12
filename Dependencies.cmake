@@ -113,6 +113,8 @@ endif(NOT APPLE)
 
 # -------------------------------
 
+# pykep: https://github.com/esa/pykep
+
 if(NOT BUILD_DEPENDENCIES)
   find_package(PyKEP)
 endif(NOT BUILD_DEPENDENCIES)
