@@ -80,24 +80,24 @@ int main( const int numberOfInputs, const char* inputArguments[ ] )
     std::string mode = modeIterator->value.GetString( );
     std::transform( mode.begin( ), mode.end( ), mode.begin( ), ::tolower );
 
-    if ( mode.compare( "single_particle_simulator") == 0 )
+    if ( mode.compare( "single_particle_simulator" ) == 0 )
     {
         std::cout << "Mode                               " << mode << std::endl;
         dustsim::executeSingleParticleSimulator( config );
     }
-    else if ( mode.compare( "single_particle_validator") == 0 )
-    {
-        std::cout << "Mode                               " << mode << std::endl;
-    }
+    // else if ( mode.compare( "single_particle_validator") == 0 )
+    // {
+    //     std::cout << "Mode                               " << mode << std::endl;
+    // }
     else if ( mode.compare( "bulk_particle_simulator") == 0 )
     {
         std::cout << "Mode                               " << mode << std::endl;
         dustsim::executeBulkParticleSimulator( config );
     }
-    else if ( mode.compare( "bulk_particle_validator") == 0 )
-    {
-        std::cout << "Mode                               " << mode << std::endl;
-    }
+    // else if ( mode.compare( "bulk_particle_validator") == 0 )
+    // {
+    //     std::cout << "Mode                               " << mode << std::endl;
+    // }
     else
     {
         std::cout << std::endl;

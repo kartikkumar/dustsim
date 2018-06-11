@@ -7,7 +7,9 @@
 #include <iomanip>
 #include <iostream>
 
-#include "dustsim/typedefs.hpp"
+#include <astro/astro.hpp>
+
+#include "dustsim/state.hpp"
 
 #ifndef DUSTSIM_OUTPUT_WRITER_HPP
 #define DUSTSIM_OUTPUT_WRITER_HPP
@@ -86,7 +88,6 @@ public:
      * @param[in] aStateHistoryStream       Output stream
      * @param[in] aGravitationalParameter   Gravitation parameter of central body        [km^3 s^-2]
      */
-
     StateHistoryWriter( std::ostream& aStateHistoryStream,
                         const Real aGravitationalParameter )
         : stateHistoryStream( aStateHistoryStream ),
@@ -104,26 +105,15 @@ public:
      * @param[in] state Current state
      * @param[in] time  Current epoch
      */
-    void operator( )( const State& state , const double time )
+    void operator( )( const double time, const State& state )
     {
         const State stateInKeplerElements
             = astro::convertCartesianToKeplerianElements( state, gravitationalParameter );
 
         stateHistoryStream << std::setprecision( std::numeric_limits< double >::digits10 )
-                           << time << ','
-                           << state[ 0 ] << ','
-                           << state[ 1 ] << ','
-                           << state[ 2 ] << ','
-                           << state[ 3 ] << ','
-                           << state[ 4 ] << ','
-                           << state[ 5 ] << ','
-                           << stateInKeplerElements[ 0 ] << ','
-                           << stateInKeplerElements[ 1 ] << ','
-                           << stateInKeplerElements[ 2 ] << ','
-                           << stateInKeplerElements[ 3 ] << ','
-                           << stateInKeplerElements[ 4 ] << ','
-                           << stateInKeplerElements[ 5 ]
-                           << std::endl;
+                           << time << ","
+                           << state << ","
+                           << stateInKeplerElements << std::endl;
     }
 
 protected:

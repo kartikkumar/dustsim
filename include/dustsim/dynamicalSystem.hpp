@@ -7,10 +7,9 @@
 #ifndef DUSTSIM_DYNAMICAL_SYSTEM_HPP
 #define DUSTSIM_DYNAMICAL_SYSTEM_HPP
 
-#include <sml/sml.hpp>
-
 #include <astro/astro.hpp>
 
+#include "dustsim/state.hpp"
 #include "dustsim/typedefs.hpp"
 
 namespace dustsim
@@ -70,32 +69,26 @@ public:
      * library.
      *
      * @sa boost::odeint::integrator
-     * @param[in]  state             Current state of the dynamical system (1-D vector)
-     * @param[out] stateDerivative   Computed state derivative of the dynamical system (1-D vector)
      * @param[in]  time              Current simulation epoch
+     * @param[in]  state             Current state of the dynamical system (1-D vector)
+     * @return                       Computed state derivative of the dynamical system (1-D vector)
      */
-    void operator( )( const Vector6& state,
-                      Vector6& stateDerivative,
-                      const double time )
+    State operator( )( const Real time, const State& state )
     {
-        const Position currentPosition = { { state[0], state[1], state[2] } };
-
-        // Set the derivative fo the position elements to the current velocity elements.
-        stateDerivative[ 0 ] = state[ 3 ];
-        stateDerivative[ 1 ] = state[ 4 ];
-        stateDerivative[ 2 ] = state[ 5 ];
-
         // Compute the total acceleration acting on the system as a sum of the forces.
         // Central body gravity is included by default.
-        Vector3 acceleration
-            = astro::computeCentralBodyAcceleration( gravitationalParameter, currentPosition );
+        State acceleration ( astro::computeCentralBodyAcceleration(
+                                gravitationalParameter,
+                                Vector( { state[ astro::xPositionIndex ],
+                                          state[ astro::yPositionIndex ],
+                                          state[ astro::zPositionIndex ] } ) ) );
 
         // Add J2 acceleration if model is set to active.
         if ( isJ2AccelerationModelActive )
         {
             // acceleration = sml::add( acceleration,
             //                          astro::computeJ2Acceleration( gravitationalParameter,
-            //                                                        currentPosition,
+            //                                                        position,
             //                                                        equatorialRadius,
             //                                                        j2Coefficient ) );
         }
@@ -103,20 +96,23 @@ public:
         // Add solar radiation pressure acceleration if model is set to active.
         if ( isRadiationPressureAccelerationModelActive )
         {
-        //     acceleration = sml::add( acceleration,
-        //                              astro::computeJ2Acceleration( gravitationalParameter,
-        //                                                            currentPosition,
-        //                                                            equatorialRadius,
-        //                                                            j2Coefficient ) );
+            // acceleration = sml::add( acceleration,
+            //                          astro::computeJ2Acceleration( gravitationalParameter,
+            //                                                        position,
+            //                                                        equatorialRadius,
+            //                                                        j2Coefficient ) );
         }
 
-        // Set the derivative of the velocity elements to the computed total acceleration.
-        stateDerivative[ 3 ] = acceleration[ 0 ];
-        stateDerivative[ 4 ] = acceleration[ 1 ];
-        stateDerivative[ 5 ] = acceleration[ 2 ];
+        return State( { state[ 3 ],
+                        state[ 4 ],
+                        state[ 5 ],
+                        acceleration[ 0 ],
+                        acceleration[ 1 ],
+                        acceleration[ 2 ] } );
     }
 
 protected:
+
 private:
 
     //! Gravitational parameter of central body [km^3 s^-2].

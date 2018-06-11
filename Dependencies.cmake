@@ -150,6 +150,44 @@ link_directories(${PYKEP_LIBRARY_DIR})
 
 # -------------------------------
 
+# integrate: https://github.com/openastro/integrate
+
+if(NOT BUILD_DEPENDENCIES)
+  find_package(integrate)
+endif(NOT BUILD_DEPENDENCIES)
+
+if(NOT INTEGRATE_FOUND)
+  message(STATUS "integrate will be downloaded when ${CMAKE_PROJECT_NAME} is built")
+  ExternalProject_Add(integrate-lib
+    PREFIX ${EXTERNAL_PATH}/integrate
+    #--Download step--------------
+    URL https://github.com/openastro/integrate/archive/master.zip
+    TIMEOUT 30
+    #--Update/Patch step----------
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    #--Configure step-------------
+    CONFIGURE_COMMAND ""
+    #--Build step-----------------
+    BUILD_COMMAND ""
+    #--Install step---------------
+    INSTALL_COMMAND ""
+    #--Output logging-------------
+    LOG_DOWNLOAD ON
+  )
+  ExternalProject_Get_Property(integrate-lib source_dir)
+  set(INTEGRATE_INCLUDE_DIRS
+        ${source_dir}/include CACHE INTERNAL "Path to include folder for integrate")
+endif(NOT INTEGRATE_FOUND)
+
+if(NOT APPLE)
+  include_directories(SYSTEM AFTER "${INTEGRATE_INCLUDE_DIRS}")
+else(APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${INTEGRATE_INCLUDE_DIRS}\"")
+endif(NOT APPLE)
+
+# -------------------------------
+
 # sml: https://github.com/openastro/sml
 
 if(NOT BUILD_DEPENDENCIES)

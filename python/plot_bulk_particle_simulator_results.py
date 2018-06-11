@@ -35,7 +35,7 @@ print ""
 print "------------------------------------------------------------------"
 print "                             dustsim                              "
 print "                              0.1.0                               "
-print "         Copyright (c) 2017, K. Kumar (me@kartikkumar.com)        "
+print "         Copyright (c) 2018, K. Kumar (me@kartikkumar.com)        "
 print "------------------------------------------------------------------"
 print ""
 

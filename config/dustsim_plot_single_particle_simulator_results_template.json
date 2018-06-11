@@ -20,7 +20,7 @@
 
     // Flag that sets whether interactive 3D figure should be shown (a Python plotting window pops
     // up).
-    "show_3D_figure"            : true,
+    "show_3D_figure"            : false,
 
     // Set radius of central body for 3D plot [km].
     "central_body_radius"       : 25559.0,

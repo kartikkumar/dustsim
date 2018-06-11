@@ -11,6 +11,7 @@
 
 #include <rapidjson/document.h>
 
+#include "dustsim/state.hpp"
 #include "dustsim/typedefs.hpp"
 
 namespace dustsim
@@ -55,9 +56,9 @@ public:
      *                                        Radiation pressure coefficient                     [-]
      * @param[in] anInitialKeplerState        Initial state in Keplerian elements
      * @param[in] anIntegrator                Name of selected numerical integrator
-     * @param[in] aStartEpoch                 Start epoch for integration                        [s]
-     * @param[in] anEndEpoch                  End epoch for integration                          [s]
-     * @param[in] aTimeStep                   Time step for integration                          [s]
+     * @param[in] aStartTime                  Start time for integration                         [s]
+     * @param[in] anEndTime                   End time for integration                           [s]
+     * @param[in] aStepSize                   Step size for integration                          [s]
      * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
      * @param[in] aMetadataFilePath           Path to output file for metadata
@@ -73,9 +74,9 @@ public:
                                   const Real            aRadiationPressureCoefficient,
                                   const State&          anInitialKeplerState,
                                   const Integrator      anIntegrator,
-                                  const Real            aStartEpoch,
-                                  const Real            anEndEpoch,
-                                  const Real            aTimeStep,
+                                  const Real            aStartTime,
+                                  const Real            anEndTime,
+                                  const Real            aStepSize,
                                   const Real            aRelativeTolerance,
                                   const Real            anAbsoluteTolerance,
                                   const std::string&    aMetadataFilePath,
@@ -90,9 +91,9 @@ public:
           radiationPressureCoefficient( aRadiationPressureCoefficient ),
           initialStateKeplerianElements( anInitialKeplerState ),
           integrator( anIntegrator ),
-          startEpoch( aStartEpoch ),
-          endEpoch( anEndEpoch ),
-          timeStep( aTimeStep ),
+          startTime( aStartTime ),
+          endTime( anEndTime ),
+          timeStep( aStepSize ),
           relativeTolerance( aRelativeTolerance ),
           absoluteTolerance( anAbsoluteTolerance ),
           metadataFilePath( aMetadataFilePath ),
@@ -124,18 +125,17 @@ public:
     //! Radiation pressure coefficient [-].
     const Real radiationPressureCoefficient;
 
-
     //! Initial state in Keplerian elements [km, -, rad, rad, rad, rad].
     const State initialStateKeplerianElements;
 
     //! Selected numerical integrator.
     const Integrator integrator;
 
-    //! Start epoch for simulator [s].
-    const Real startEpoch;
+    //! Start time for simulator [s].
+    const Real startTime;
 
-    //! End epoch for simulator [s].
-    const Real endEpoch;
+    //! End time for simulator [s].
+    const Real endTime;
 
     //! Time step for simulator [s].
     const Real timeStep;

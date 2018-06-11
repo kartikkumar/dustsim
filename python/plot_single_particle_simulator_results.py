@@ -16,8 +16,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d import axes3d
 
 # I/O
-import commentjson
 import json
+import jstyleson
 from pprint import pprint
 
 # Numerical
@@ -29,40 +29,42 @@ import pandas as pd
 import sys
 import time
 
-print ""
-print "------------------------------------------------------------------"
-print "                             dustsim                              "
-print "                              0.1.0                               "
-print "         Copyright (c) 2017, K. Kumar (me@kartikkumar.com)        "
-print "------------------------------------------------------------------"
-print ""
+print ("")
+print ("------------------------------------------------------------------")
+print ("                             dustsim                              ")
+print ("                              0.1.0                               ")
+print ("         Copyright (c) 2018, K. Kumar (me@kartikkumar.com)        ")
+print ("------------------------------------------------------------------")
+print ("")
 
 # Start timer.
 start_time = time.time( )
 
-print ""
-print "******************************************************************"
-print "                          Input parameters                        "
-print "******************************************************************"
-print ""
+print ("")
+print ("******************************************************************")
+print ("                          Input parameters                        ")
+print ("******************************************************************")
+print ("")
 
 # Parse JSON configuration file.
 # Raise exception if wrong number of inputs are provided to script.
 if len(sys.argv) != 2:
     raise Exception("Only provide a JSON config file as input!")
 
-json_data = open(sys.argv[1])
-config = commentjson.load(json_data)
-json_data.close()
+json_input_file = open(sys.argv[1])
+with open(sys.argv[1], 'r') as json_input_file:
+  json_input_string = json_input_file.read()
+config = jstyleson.loads(json_input_string)
+jstyleson.dumps(config)
 pprint(config)
 
-print ""
-print "******************************************************************"
-print "                            Operations                            "
-print "******************************************************************"
-print ""
+print ("")
+print ("******************************************************************")
+print ("                            Operations                            ")
+print ("******************************************************************")
+print ("")
 
-print "Input data files being read ..."
+print ("Input data files being read ...")
 
 input_path_prefix = config["input_directory"] + "/"
 output_path_prefix = config["output_directory"] + '/'
@@ -80,9 +82,9 @@ metadata_table.append(["Start epoch",metadata[1][4],'${0}$'.format(metadata[2][4
 metadata_table.append(["End epoch",metadata[1][5],'${0}$'.format(metadata[2][5])])
 metadata_table.append(["Time step",metadata[1][6],'${0}$'.format(metadata[2][6])])
 
-print "Input data files successfully read!"
+print ("Input data files successfully read!")
 
-print "figures being generated ..."
+print ("figures being generated ...")
 
 # Generate figure with 2D views.
 fig = plt.figure()
@@ -124,7 +126,7 @@ table_cells = table_props['child_artists']
 for cell in table_cells:
     cell.set_height(0.15)
 cell_dict = the_table.get_celld()
-for row in xrange(0,len(metadata_table)):
+for row in range(0,len(metadata_table)):
     cell_dict[(row,2)].set_width(0.1)
 
 # Save figure.
@@ -222,18 +224,18 @@ if config["show_3D_figure"]:
     plt.grid()
     plt.show()
 
-print "Figures generated successfully!"
-print ""
+print ("Figures generated successfully!")
+print ("")
 
 # Stop timer
 end_time = time.time( )
 
-print ""
-print "------------------------------------------------------------------"
-print "                         Exited successfully!                     "
-print "------------------------------------------------------------------"
-print ""
+print ("")
+print ("------------------------------------------------------------------")
+print ("                         Exited successfully!                     ")
+print ("------------------------------------------------------------------")
+print ("")
 
 # Print elapsed time
-print "(Script time: " + str("{:,g}".format(end_time - start_time)) + "s)"
-print ""
+print ("(Script time: " + str("{:,g}".format(end_time - start_time)) + "s)")
+print ("")

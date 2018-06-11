@@ -12,7 +12,7 @@
     "mode"                                  : "bulk_particle_simulator",
 
     // Set number of threads to parallelize simulations.
-    "threads"                               : 2,
+    "threads"                               : 1,
 
     // Set number of dust particles.
     "particles"                             : 100,
@@ -76,13 +76,14 @@
 
     // Select numerical integrator.
     // (rk4|dopri5|rkf78|bs)
-    "integrator"                            : "bs",
+    "integrator"                            : "rk4",
 
     // Set up integrator time parameters.
-    // The end epoch is internally derived as: start_epoch + (step_size * output_steps).
-    "start_epoch"                           : 0.0,
-    "step_size"                             : 3600.0,
-    "output_steps"                          : 1000,
+    // For fixed step size integrators, the step size is constant throughout.
+    // For variable step size integrators, the step size is adapted based on the tolerances.
+    "start_time"                            : 0.0,
+    "end_time"                              : 86400.0,
+    "time_step"                             : 10.0,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
     "relative_tolerance"                    : 1.0e-10,
@@ -93,5 +94,5 @@
     ////
 
     // Set up SQLite database options.
-    "database_file_path"                    : "test.db"
+    "database_file_path"                    : "/Users/kartikkumar/Desktop/test.db"
 }

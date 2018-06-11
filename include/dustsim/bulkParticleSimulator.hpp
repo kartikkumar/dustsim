@@ -62,9 +62,9 @@ public:
      * @param[in] anInclinationFWHM           Full-Width Half-Maximum for normal distribution of
                                               inclination vector components                    [rad]
      * @param[in] anIntegrator                Name of selected numerical integrator
-     * @param[in] aStartEpoch                 Start epoch for integration                        [s]
-     * @param[in] aStepSize                   Fixed step size to generate integration output     [s]
-     * @param[in] aNumberOfOutputSteps        Number of output steps requested
+     * @param[in] aStartTime                  Start time for integration                         [s]
+     * @param[in] aTimeStep                   Time step for numerical integrator                 [s]
+     * @param[in] anEndTime                   End time for integration                           [s]
      * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
      * @param[in] aDatabaseFilePath           Path to SQLite database for simulation results
@@ -84,9 +84,9 @@ public:
                                 const Real            anEccentricityFWHM,
                                 const Real            anInclinationFWHM,
                                 const Integrator      anIntegrator,
-                                const Real            aStartEpoch,
-                                const Real            aStepSize,
-                                const Real            aNumberOfOutputSteps,
+                                const Real            aStartTime,
+                                const Real            aTimeStep,
+                                const Real            anEndTime,
                                 const Real            aRelativeTolerance,
                                 const Real            anAbsoluteTolerance,
                                 const std::string&    aDatabaseFilePath )
@@ -105,9 +105,9 @@ public:
           eccentricityFullWidthHalfMaximum( anEccentricityFWHM ),
           inclinationFullWidthHalfMaximum( anInclinationFWHM ),
           integrator( anIntegrator ),
-          startEpoch( aStartEpoch ),
-          stepSize( aStepSize ),
-          outputSteps( aNumberOfOutputSteps ),
+          startTime( aStartTime ),
+          timeStep( aTimeStep ),
+          endTime( anEndTime ),
           relativeTolerance( aRelativeTolerance ),
           absoluteTolerance( anAbsoluteTolerance ),
           databaseFilePath( aDatabaseFilePath )
@@ -159,16 +159,16 @@ public:
     //! Selected numerical integrator.
     const Integrator integrator;
 
-    //! Start epoch for simulator [s].
-    const Real startEpoch;
+    //! Start time for simulator [s].
+    const Real startTime;
 
-    //! Fixed step size to generate integration output [s].
-    //! (N.B.: this is NOT the internal time step taken by the integration scheme but rather the
-    //! step size between requested output points ).
-    const Real stepSize;
+    //! Step size to for integration scheme [s].
+    //! For fixed step size integrators, the step size is constant throughout.
+    //! For variable step size integrators, the step size is adapted based on the tolerances.
+    const Real timeStep;
 
-    //! Number of equally-spaced output steps requested between start and end epoch.
-    const Int outputSteps;
+    //! End time for simulator [s].
+    const Real endTime;
 
     //! Relative tolerance for numerical integrator [-].
     const Real relativeTolerance;

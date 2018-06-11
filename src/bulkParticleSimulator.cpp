@@ -9,19 +9,16 @@
 #include <iterator>
 #include <cmath>
 #include <limits>
+#include <map>
+#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/numeric/odeint.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
-
 #include <omp.h>
+
+#include <boost/algorithm/string.hpp>
 
 #include <keplerian_toolbox.h>
 
@@ -30,6 +27,8 @@
 #include <astro/astro.hpp>
 
 #include <sml/sml.hpp>
+
+#include <integrate/integrate.hpp>
 
 #include "dustsim/bulkParticleSimulator.hpp"
 #include "dustsim/dynamicalSystem.hpp"
@@ -54,12 +53,13 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     std::cout << "Setting up random number generators for initial states ..." << std::endl;
 
     // Initialize random seed.
-    boost::random::mt19937 randomSeed;
+    std::random_device randomNumberSeed;
+    std::mt19937 randomNumberGenerator( randomNumberSeed( ) );
 
     // Set up generators for initial states for dust particles.
     // Semi-major axis values are generated from a uniform distribution, with minimum and maximum
     // set in the config file.
-    boost::random::uniform_real_distribution< Real > semiMajorAxisGenerator(
+    std::uniform_real_distribution< Real > semiMajorAxisGenerator(
         input.semiMajorAxisMinimum, input.semiMajorAxisMaximum );
 
     // Eccentricity & argument of periapses values are generated from normal distributions for the
@@ -68,8 +68,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         = input.eccentricityFullWidthHalfMaximum / ( 2.0 * std::sqrt( 2.0 * std::log( 2 ) ) );
     std::cout << "Eccentricity standard deviation    " << eccentricityStandardDeviation
               << " [-]" << std::endl;
-
-    boost::random::normal_distribution< Real > eccentricityComponentGenerator(
+    std::normal_distribution< Real > eccentricityComponentGenerator(
         0.0, eccentricityStandardDeviation );
 
     // Inclination & longitude of ascending node values are generated from normal distributions for
@@ -78,12 +77,11 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         = input.inclinationFullWidthHalfMaximum / ( 2.0 * std::sqrt( 2.0 * std::log( 2 ) ) );
     std::cout << "Inclination standard deviation     " << inclinationStandardDeviation
               << " [rad]" << std::endl;
-
-    boost::random::normal_distribution< Real > inclinationComponentGenerator(
+    std::normal_distribution< Real > inclinationComponentGenerator(
         0.0, inclinationStandardDeviation );
 
     // Mean anomaly values are generated from a uniform distribution.
-    boost::random::uniform_real_distribution< Real > meanAnomalyGenerator( 0.0, 2.0 * sml::SML_PI );
+    std::uniform_real_distribution< Real > meanAnomalyGenerator( 0.0, 2.0 * sml::SML_PI );
 
     std::cout << "Random number generators set up successfully!" << std::endl;
     std::cout << std::endl;
@@ -117,9 +115,9 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "\"eccentricity_full_width_half_maximum\" REAL NOT NULL,"
         << "\"inclination_full_width_half_maximum\" REAL NOT NULL,"
         << "\"integrator\" TEXT NOT NULL,"
-        << "\"start_epoch\" REAL NOT NULL,"
-        << "\"step_size\" REAL NOT NULL,"
-        << "\"output_steps\" INTEGER NOT NULL,"
+        << "\"start_time\" REAL NOT NULL,"
+        << "\"initial_time_step\" REAL NOT NULL,"
+        << "\"end_time\" INTEGER NOT NULL,"
         << "\"relative_tolerance\" REAL NOT NULL,"
         << "\"absolute_tolerance\" REAL NOT NULL);";
 
@@ -156,9 +154,9 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     std::ostringstream simulationResultsTableCreate;
     simulationResultsTableCreate
         << "CREATE TABLE " << simulationResultsTableName << " ("
-        << "\"ephemeris_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
+        << "\"time_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
         << "\"simulation_id\" INTEGER NOT NULL,"
-        << "\"epoch\" REAL NOT NULL,"
+        << "\"time\" REAL NOT NULL,"
         << "\"semi_major_axis\" REAL NOT NULL,"
         << "\"eccentricity\" REAL NOT NULL,"
         << "\"inclination\" REAL NOT NULL,"
@@ -190,9 +188,9 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << input.integrator << ",";
     metadataInsertString
         << std::setprecision( std::numeric_limits< double >::digits10 )
-        << input.startEpoch << ","
-        << input.stepSize << ","
-        << input.outputSteps << ","
+        << input.startTime << ","
+        << input.timeStep << ","
+        << input.endTime << ","
         << input.relativeTolerance << ","
         << input.absoluteTolerance
         << ");";
@@ -222,11 +220,11 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     for ( int i = 0; i < input.numberOfParticles ; ++i )
     {
         // Generate random semi-major axis [km].
-        const Real semiMajorAxis = semiMajorAxisGenerator( randomSeed );
+        const Real semiMajorAxis = semiMajorAxisGenerator( randomNumberGenerator );
 
         // Generate random eccentricity vector components.
-        const Real eccentricityXComponent = eccentricityComponentGenerator( randomSeed );
-        const Real eccentricityYComponent = eccentricityComponentGenerator( randomSeed );
+        const Real eccentricityXComponent = eccentricityComponentGenerator( randomNumberGenerator );
+        const Real eccentricityYComponent = eccentricityComponentGenerator( randomNumberGenerator );
 
         // Compute eccentricity [-] and argument of periapsis [rad].
         const Real eccentricity = std::sqrt( eccentricityXComponent * eccentricityXComponent
@@ -236,8 +234,8 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
             = std::atan2( eccentricityYComponent, eccentricityXComponent );
 
         // Generate random inclination vector components.
-        const Real inclinationXComponent = inclinationComponentGenerator( randomSeed );
-        const Real inclinationYComponent = inclinationComponentGenerator( randomSeed );
+        const Real inclinationXComponent = inclinationComponentGenerator( randomNumberGenerator );
+        const Real inclinationYComponent = inclinationComponentGenerator( randomNumberGenerator );
 
         // Compute inclination [rad] and longitude of ascending node [rad].
         const Real inclination = std::sqrt( inclinationXComponent * inclinationXComponent
@@ -247,7 +245,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
             = std::atan2( inclinationYComponent, inclinationXComponent );
 
         // Generate mean anomaly [rad].
-        const Real meanAnomaly = meanAnomalyGenerator( randomSeed );
+        const Real meanAnomaly = meanAnomalyGenerator( randomNumberGenerator );
 
         // Compute true anomaly from mean anomaly [rad].
         const Real eccentricAnomaly = kep_toolbox::m2e( meanAnomaly, eccentricity );
@@ -277,14 +275,14 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     // Create instance of dynamical system.
     std::cout << "Set up dynamical model ..." << std::endl;
-    const DynamicalSystem dynamics( input.gravitationalParameter,
-                                    input.isJ2AccelerationModelActive,
-                                    input.j2Coefficient,
-                                    input.equatorialRadius,
-                                    input.isRadiationPressureAccelerationModelActive,
-                                    input.particleRadius,
-                                    input.particleBulkDensity,
-                                    input.radiationPressureCoefficient );
+    DynamicalSystem dynamics( input.gravitationalParameter,
+                              input.isJ2AccelerationModelActive,
+                              input.j2Coefficient,
+                              input.equatorialRadius,
+                              input.isRadiationPressureAccelerationModelActive,
+                              input.particleRadius,
+                              input.particleBulkDensity,
+                              input.radiationPressureCoefficient );
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
 
@@ -295,7 +293,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "INSERT INTO '" << simulationResultsTableName << "' VALUES ("
         << "NULL,"
         << ":simulation_id,"
-        << ":epoch,"
+        << ":time,"
         << ":semi_major_axis,"
         << ":eccentricity,"
         << ":inclination,"
@@ -319,26 +317,27 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     // Fetch initial states table in database.
     typedef std::map< Int, State > InitialStates;
+    typedef std::pair< Int, State > InitialState;
     InitialStates initialStates;
 
     while ( initialStatesFetchQuery.executeStep( ) )
     {
         const Int simulationId = initialStatesFetchQuery.getColumn( 0 );
-        State initialStateKeplerianElements;
-        initialStateKeplerianElements[ astro::semiMajorAxisIndex ]
+        Vector initialStateKeplerianElementsArray( 6 );
+        initialStateKeplerianElementsArray[ astro::semiMajorAxisIndex ]
             = initialStatesFetchQuery.getColumn( 2 );
-        initialStateKeplerianElements[ astro::eccentricityIndex ]
+        initialStateKeplerianElementsArray[ astro::eccentricityIndex ]
             = initialStatesFetchQuery.getColumn( 3 );
-        initialStateKeplerianElements[ astro::inclinationIndex ]
+        initialStateKeplerianElementsArray[ astro::inclinationIndex ]
             = initialStatesFetchQuery.getColumn( 4 );
-        initialStateKeplerianElements[ astro::argumentOfPeriapsisIndex ]
+        initialStateKeplerianElementsArray[ astro::argumentOfPeriapsisIndex ]
             = initialStatesFetchQuery.getColumn( 5 );
-        initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ]
+        initialStateKeplerianElementsArray[ astro::longitudeOfAscendingNodeIndex ]
             = initialStatesFetchQuery.getColumn( 6 );
-        initialStateKeplerianElements[ astro::trueAnomalyIndex ]
+        initialStateKeplerianElementsArray[ astro::trueAnomalyIndex ]
             = initialStatesFetchQuery.getColumn( 7 );
-
-        initialStates[ simulationId ] = initialStateKeplerianElements;
+        State initialStateKeplerianElements( initialStateKeplerianElementsArray );
+        initialStates.insert( InitialState( simulationId, initialStateKeplerianElements ) );
     }
     // Set up query to update completed states in initial states table once simulation has been run.
     std::ostringstream initialStatesUpdateString;
@@ -352,11 +351,11 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
     for ( unsigned int j = 0; j < initialStates.size( ); ++j )
     {
-        InitialStates::iterator initialState = initialStates.begin( );
-        std::advance( initialState, j );
+        InitialStates::iterator initialStateIterator = initialStates.begin( );
+        std::advance( initialStateIterator, j );
 
-        const Int simulationId = initialState->first;
-        const State currentStateInKeplerianElements = initialState->second;
+        const Int simulationId = initialStateIterator->first;
+        const State currentStateInKeplerianElements = initialStateIterator->second;
 
         // Execute selected numerical integrator.
 #pragma omp critical( outputToConsole )
@@ -365,61 +364,29 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         }
 
         // Compute initial state in Cartesian elements.
-        State currentState = astro::convertKeplerianToCartesianElements(
+        const State initialState = astro::convertKeplerianToCartesianElements(
             currentStateInKeplerianElements, input.gravitationalParameter );
 
         std::ostringstream integrationOutput;
-        const StateHistoryWriter writer( integrationOutput, input.gravitationalParameter );
-
+        StateHistoryWriter writer( integrationOutput,
+                                   input.gravitationalParameter );
         if ( input.integrator == rk4 )
         {
-            using namespace boost::numeric::odeint;
-            integrate_n_steps( runge_kutta4< State >( ),
-                               dynamics,
-                               currentState,
-                               input.startEpoch,
-                               input.stepSize,
-                               input.outputSteps,
-                               writer );
-        }
-        else if ( input.integrator == dopri5 )
-        {
-            using namespace boost::numeric::odeint;
-            integrate_n_steps( make_dense_output( input.relativeTolerance,
-                                                  input.absoluteTolerance,
-                                                  runge_kutta_dopri5< State >( ) ),
-                              dynamics,
-                              currentState,
-                              input.startEpoch,
-                              input.stepSize,
-                              input.outputSteps,
-                              writer );
-        }
-        else if ( input.integrator == rkf78 )
-        {
-            using namespace boost::numeric::odeint;
-            integrate_n_steps( make_controlled( input.relativeTolerance,
-                                                input.absoluteTolerance,
-                                                runge_kutta_fehlberg78< State >( ) ),
-                               dynamics,
-                               currentState,
-                               input.startEpoch,
-                               input.stepSize,
-                               input.outputSteps,
-                               writer );
-        }
-        else if ( input.integrator == bs )
-        {
-            using namespace boost::numeric::odeint;
-            bulirsch_stoer_dense_out< State > stepper( input.absoluteTolerance,
-                                                       input.relativeTolerance );
-            integrate_n_steps( stepper,
-                               dynamics,
-                               currentState,
-                               input.startEpoch,
-                               input.stepSize,
-                               input.outputSteps,
-                               writer );
+            auto stateDerivativePointer = std::bind( &DynamicalSystem::operator( ),
+                                                     &dynamics,
+                                                     std::placeholders::_1,
+                                                     std::placeholders::_2 );
+
+            Real currentTime = input.startTime;
+            State currentState = initialState;
+            while ( currentTime < input.endTime )
+            {
+                integrate::stepRK4< Real, State >( currentTime,
+                                                   currentState,
+                                                   input.timeStep,
+                                                   stateDerivativePointer );
+                writer( currentTime, currentState );
+            }
         }
         else
         {
@@ -444,7 +411,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
                simulationResultsInsertQuery.bind(
                        ":simulation_id",               simulationId );
                simulationResultsInsertQuery.bind(
-                       ":epoch",                       i * input.stepSize );
+                       ":time",                        i * input.timeStep );
                simulationResultsInsertQuery.bind(
                        ":semi_major_axis",             stateElements.at( 7 ) );
                simulationResultsInsertQuery.bind(
@@ -578,12 +545,12 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
     std::cout << "Integrator                         " << integratorString << std::endl;
 
     // Extract integrator time settings.
-    const Real startEpoch           = find( config, "start_epoch" )->value.GetDouble( );
-    std::cout << "Start epoch                        " << startEpoch << " [s]" << std::endl;
-    const Real stepSize             = find( config, "step_size" )->value.GetDouble( );
-    std::cout << "Step size                          " << stepSize << " [s]" << std::endl;
-    const Real outputSteps          = find( config, "output_steps" )->value.GetInt( );
-    std::cout << "Number of output steps             " << outputSteps << std::endl;
+    const Real startTime            = find( config,  "start_time" )->value.GetDouble( );
+    std::cout << "Start time                         " << startTime << " [s]" << std::endl;
+    const Real endTime              = find( config,  "end_time" )->value.GetDouble( );
+    std::cout << "End time                           " << startTime << " [s]" << std::endl;
+    const Real timeStep             = find( config,  "time_step" )->value.GetDouble( );
+    std::cout << "Time step                          " << timeStep << " [s]" << std::endl;
 
     // Extract integrator tolerances.
     const Real relativeTolerance    = find( config, "relative_tolerance" )->value.GetDouble( );
@@ -610,9 +577,9 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
                                        eccentricityFullWidthHalfMaximum,
                                        inclinationFullWidthHalfMaximum,
                                        integrator,
-                                       startEpoch,
-                                       stepSize,
-                                       outputSteps,
+                                       startTime,
+                                       timeStep,
+                                       endTime,
                                        relativeTolerance,
                                        absoluteTolerance,
                                        databaseFilePath );

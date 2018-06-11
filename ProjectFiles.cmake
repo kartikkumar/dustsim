@@ -6,6 +6,7 @@
 set(SRC
   "${SRC_PATH}/bulkParticleSimulator.cpp"
   "${SRC_PATH}/singleParticleSimulator.cpp"
+  "${SRC_PATH}/state.cpp"
   "${SRC_PATH}/tools.cpp"
 )
 

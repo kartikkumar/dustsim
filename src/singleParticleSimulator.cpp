@@ -4,13 +4,15 @@
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
+#include <functional>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
-
-#include <boost/numeric/odeint.hpp>
+#include <vector>
 
 #include <astro/astro.hpp>
+#include <integrate/integrate.hpp>
 
 #include "dustsim/dynamicalSystem.hpp"
 #include "dustsim/outputWriter.hpp"
@@ -33,21 +35,14 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << std::endl;
 
     // Compute initial state in Cartesian elements.
-    State initialState = astro::convertKeplerianToCartesianElements(
+    const State initialState = astro::convertKeplerianToCartesianElements(
         input.initialStateKeplerianElements, input.gravitationalParameter );
-    std::cout << "Cartesian initial state            (";
-    for ( unsigned int i = 0; i < initialState.size( ) - 1; i++ )
-    {
-        std::cout << initialState[ i ] << ", ";
-    }
-    std::cout << initialState[ initialState.size( ) - 1 ] << ")" << std::endl;
+    std::cout << "Cartesian initial state            (" << initialState << ")" << std::endl;
     std::cout << std::endl;
 
-    // Set current state to initial state.
+    // Set current tune and state to initial time and state.
     State currentState = initialState;
-
-    // // Set current epoch to start epoch.
-    // Real currentEpoch = input.startEpoch;
+    Real currentTime = input.startTime;
 
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
@@ -92,13 +87,12 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
             input.initialStateKeplerianElements[ astro::trueAnomalyIndex ] );
     print( metadataFile, "initial_state_kepler", initialKeplerStateString.str( ), "km | deg" );
     metadataFile << std::endl;
-    print( metadataFile, "start_epoch", input.startEpoch, "s" );
+    print( metadataFile, "start_time", input.startTime, "s" );
     metadataFile << std::endl;
-    print( metadataFile, "end_epoch", input.endEpoch, "s" );
+    print( metadataFile, "end_time", input.endTime, "s" );
     metadataFile << std::endl;
     print( metadataFile, "time_step", input.timeStep, "s" );
     metadataFile << std::endl;
-
 
     // Create file stream to write state history to.
     std::ofstream stateHistoryFile( input.stateHistoryFilePath );
@@ -110,41 +104,21 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << "Exeucting numerical integration ..." << std::endl;
     if ( input.integrator == rk4 )
     {
-        using namespace boost::numeric::odeint;
-        integrate_const( runge_kutta4< State >( ),
-                         dynamics,
-                         currentState,
-                         input.startEpoch,
-                         input.endEpoch,
-                         input.timeStep,
-                         writer );
+        auto stateDerivativePointer = std::bind( &DynamicalSystem::operator( ),
+                                                 &dynamics,
+                                                 std::placeholders::_1,
+                                                 std::placeholders::_2 );
+
+        while ( currentTime < input.endTime )
+        {
+            integrate::stepRK4< Real, State >( currentTime,
+                                               currentState,
+                                               input.timeStep,
+                                               stateDerivativePointer );
+            writer( currentTime, currentState );
+        }
     }
-    else if ( input.integrator == dopri5 )
-    {
-        using namespace boost::numeric::odeint;
-        integrate_const( make_dense_output( input.relativeTolerance,
-                                            input.absoluteTolerance,
-                                            runge_kutta_dopri5< State >( ) ),
-                         dynamics,
-                         currentState,
-                         input.startEpoch,
-                         input.endEpoch,
-                         input.timeStep,
-                         writer );
-    }
-    else if ( input.integrator == bs )
-    {
-        using namespace boost::numeric::odeint;
-        bulirsch_stoer_dense_out< State > stepper( input.absoluteTolerance,
-                                                   input.relativeTolerance );
-        integrate_const( stepper,
-                         dynamics,
-                         currentState,
-                         input.startEpoch,
-                         input.endEpoch,
-                         input.timeStep,
-                         writer );
-    }
+
     std::cout << "Numerical integrator executed successfully!" << std::endl;
 }
 
@@ -189,25 +163,29 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
 
     // Extract initial state of dust particle in Keplerian elements.
     ConfigIterator initialStateKeplerianElementsIterator = find( config, "initial_state_kepler" );
-    State initialStateKeplerianElements;
-    initialStateKeplerianElements[ astro::semiMajorAxisIndex ]
+    Vector initialStateKeplerianElementsVector( 6 );
+
+    initialStateKeplerianElementsVector[ astro::semiMajorAxisIndex ]
      = initialStateKeplerianElementsIterator->value[ astro::semiMajorAxisIndex ].GetDouble( );
-    initialStateKeplerianElements[ astro::eccentricityIndex ]
+    initialStateKeplerianElementsVector[ astro::eccentricityIndex ]
      = initialStateKeplerianElementsIterator->value[ astro::eccentricityIndex ].GetDouble( );
-    initialStateKeplerianElements[ astro::inclinationIndex ]
+    initialStateKeplerianElementsVector[ astro::inclinationIndex ]
      = sml::convertDegreesToRadians(
          initialStateKeplerianElementsIterator->value[ astro::inclinationIndex ].GetDouble( ) );
-    initialStateKeplerianElements[ astro::argumentOfPeriapsisIndex ]
+    initialStateKeplerianElementsVector[ astro::argumentOfPeriapsisIndex ]
      = sml::convertDegreesToRadians(
          initialStateKeplerianElementsIterator->value[
              astro::argumentOfPeriapsisIndex ].GetDouble( ) );
-    initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ]
+    initialStateKeplerianElementsVector[ astro::longitudeOfAscendingNodeIndex ]
      = sml::convertDegreesToRadians(
          initialStateKeplerianElementsIterator->value[
              astro::longitudeOfAscendingNodeIndex ].GetDouble( ) );
-    initialStateKeplerianElements[ astro::trueAnomalyIndex ]
+    initialStateKeplerianElementsVector[ astro::trueAnomalyIndex ]
      = sml::convertDegreesToRadians(
          initialStateKeplerianElementsIterator->value[ astro::trueAnomalyIndex ].GetDouble( ) );
+
+    const State initialStateKeplerianElements( initialStateKeplerianElementsVector );
+
     std::cout << "Initial state (Kepler)             ("
            << initialStateKeplerianElements[ astro::semiMajorAxisIndex ] << ", "
            << initialStateKeplerianElements[ astro::eccentricityIndex ] << ", "
@@ -216,7 +194,6 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
            << initialStateKeplerianElements[ astro::longitudeOfAscendingNodeIndex ] << ", "
            << initialStateKeplerianElements[ astro::trueAnomalyIndex ] << ") "
            << "[km, -, rad, rad, rad, rad]" << std::endl;
-
 
     // Extract selected numerical integrator.
     const std::string integratorString = find( config, "integrator" )->value.GetString( );
@@ -247,10 +224,10 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     std::cout << "Integrator                         " << integratorString << std::endl;
 
     // Extract integrator time settings.
-    const Real startEpoch           = find( config, "start_epoch" )->value.GetDouble( );
-    std::cout << "Start epoch                        " << startEpoch << " [s]" << std::endl;
-    const Real endEpoch             = find( config, "end_epoch" )->value.GetDouble( );
-    std::cout << "End epoch                          " << endEpoch << " [s]" << std::endl;
+    const Real stateTime            = find( config, "start_time" )->value.GetDouble( );
+    std::cout << "Start epoch                        " << stateTime << " [s]" << std::endl;
+    const Real endTime              = find( config, "end_time" )->value.GetDouble( );
+    std::cout << "End epoch                          " << endTime << " [s]" << std::endl;
     const Real timeStep             = find( config, "time_step" )->value.GetDouble( );
     std::cout << "Time step                          " << timeStep << " [s]" << std::endl;
 
@@ -278,8 +255,8 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
                                          radiationPressureCoefficient,
                                          initialStateKeplerianElements,
                                          integrator,
-                                         startEpoch,
-                                         endEpoch,
+                                         stateTime,
+                                         endTime,
                                          timeStep,
                                          relativeTolerance,
                                          absoluteTolerance,
