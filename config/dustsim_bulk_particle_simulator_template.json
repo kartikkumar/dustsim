@@ -15,7 +15,7 @@
     "threads"                               : 1,
 
     // Set number of dust particles.
-    "particles"                             : 100,
+    "particles"                             : 10,
 
     ////
     // Central gravity
@@ -75,24 +75,32 @@
     ////
 
     // Select numerical integrator.
-    // (rk4|dopri5|rkf78|bs)
-    "integrator"                            : "rk4",
+    // (rk4|rkf45|rkf78)
+    // NOTE: Currently, only the RKF7(8) integrator is included.
+    "integrator"                            : "rkf78",
 
     // Set up integrator time parameters.
     // For fixed step size integrators, the step size is constant throughout.
     // For variable step size integrators, the step size is adapted based on the tolerances.
     "start_time"                            : 0.0,
-    "end_time"                              : 86400.0,
-    "time_step"                             : 10.0,
+    "end_time"                              : 3.15576e7,
+    "time_step"                             : 100.0,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
     "relative_tolerance"                    : 1.0e-10,
     "absolute_tolerance"                    : 1.0e-12,
 
+    // Set up integrator step size bounds (only applicable for adaptive step size integrators).
+    "minimum_step_size"                     : 1.0e-10,
+    "maximum_step_size"                     : 1000.0,
+
     ////
     // Output
     ////
 
+    // Set interval at which output is written to database.
+    "output_interval"                       : 3600.0,
+
     // Set up SQLite database options.
-    "database_file_path"                    : "/Users/kartikkumar/Desktop/test.db"
+    "database_file_path"                    : ""
 }

@@ -22,11 +22,9 @@
 
     // Set J2 coefficient of spherical harmonics expansion of gravity field.
     "j2_coefficient"                        : 0.012,
-    //0.012,
 
     // Set equatorial radius corresponding to spherical harmonics expansion of graivty field [km].
     "equatorial_radius"                     : 25559.0,
-    // 25559.0,
 
     ////
     // Solar radiation pressure
@@ -60,23 +58,27 @@
     ////
 
     // Select numerical integrator.
-    // (rk4|dopri5|rkf78|bs)
-    "integrator"                            : "rk4",
+    // (rk4|rkf45|rkf78)
+    "integrator"                            : "rkf78",
 
     // Set up integrator time parameters.
     "start_time"                            : 0.0,
-    "end_time"                              : 86400.0,
+    "end_time"                              : 8640000.0,
     "time_step"                             : 10.0,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
     "relative_tolerance"                    : 1.0e-10,
     "absolute_tolerance"                    : 1.0e-12,
 
+    // Set up integrator step size bounds (only applicable for adaptive step size integrators).
+    "minimum_step_size"                     : 1.0e-10,
+    "maximum_step_size"                     : 1000.0,
+
     ////
     // Output
     ////
 
     // Set up file writer options.
-    "metadata_file_path"                    : "/Users/kartikkumar/Desktop/metadata.csv",
-    "state_history_file_path"               : "/Users/kartikkumar/Desktop/state_history.csv"
+    "metadata_file_path"                    : "",
+    "state_history_file_path"               : ""
 }

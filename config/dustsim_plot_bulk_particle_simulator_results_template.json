@@ -3,7 +3,7 @@
 // See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 {
     // Set path to database.
-    "database"                      : "/Users/kartikkumar/Desktop/workspace/dustsim/build/test.db",
+    "database"                      : "",
 
     // Set name of database table.
     "metadata_table"                : "metadata",
@@ -14,7 +14,7 @@
     "semi_major_axis_reference"     : 97736.0,
 
     // Set directory where 2D figure is stored.
-    "output_directory"              : "/Users/kartikkumar/Desktop",
+    "output_directory"              : "",
 
     // Set filename for initial states figure.
     "initial_states_figure"         : "initial_states.png",

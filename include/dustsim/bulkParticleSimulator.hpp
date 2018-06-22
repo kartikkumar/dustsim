@@ -67,6 +67,9 @@ public:
      * @param[in] anEndTime                   End time for integration                           [s]
      * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
+     * @param[in] aMinimumStepSize            Minimum allowable step size for integrator         [s]
+     * @param[in] aMaximumStepSize            Maximum allowable step size for integrator         [s]
+     * @param[in] anOutputInterval            Interval at which output is written to database    [s]
      * @param[in] aDatabaseFilePath           Path to SQLite database for simulation results
      */
     BulkParticleSimulatorInput( const Real            aNumberOfThreads,
@@ -89,6 +92,9 @@ public:
                                 const Real            anEndTime,
                                 const Real            aRelativeTolerance,
                                 const Real            anAbsoluteTolerance,
+                                const Real            aMinimumStepSize,
+                                const Real            aMaximumStepSize,
+                                const Real            anOutputInterval,
                                 const std::string&    aDatabaseFilePath )
         : numberOfThreads( aNumberOfThreads ),
           numberOfParticles( aNumberOfParticles ),
@@ -110,6 +116,9 @@ public:
           endTime( anEndTime ),
           relativeTolerance( aRelativeTolerance ),
           absoluteTolerance( anAbsoluteTolerance ),
+          minimumStepSize( aMinimumStepSize ),
+          maximumStepSize( aMaximumStepSize ),
+          outputInterval( anOutputInterval ),
           databaseFilePath( aDatabaseFilePath )
     { }
 
@@ -175,6 +184,15 @@ public:
 
     //! Absolute tolerance for numerical integrator [-].
     const Real absoluteTolerance;
+
+    //! Minimum allowable step size for numerical integrator [-].
+    const Real minimumStepSize;
+
+    //! Maximum allowable step size for numerical integrator [-].
+    const Real maximumStepSize;
+
+    //! Interval at which output is written to the database [s].
+    const Real outputInterval;
 
     //! SQLite database file path.
     const std::string databaseFilePath;

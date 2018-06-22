@@ -8,7 +8,7 @@
 #define DUSTSIM_STATE_HPP
 
 #include <iostream>
-#include <vector>
+#include <map>
 
 #include "dustsim/typedefs.hpp"
 
@@ -47,6 +47,8 @@ private:
 
     Vector vector;
 };
+
+typedef std::map< Real, State > StateHistory;
 
 } // namespace dustsim
 

@@ -65,32 +65,31 @@ public:
     /*!
      * Overloads the ()-operator to compute the state derivative, given the current state and epoch,
      * based on the parameters and models used to construct the dynamical system.
-     * This function fulfills the prototype for the numerical integrators in the Boost Odeint
+     * This function fulfills the prototype for the numerical integrators in the openastro integrate
      * library.
      *
-     * @sa boost::odeint::integrator
      * @param[in]  time              Current simulation epoch
      * @param[in]  state             Current state of the dynamical system (1-D vector)
      * @return                       Computed state derivative of the dynamical system (1-D vector)
      */
     State operator( )( const Real time, const State& state )
     {
+        const State position( { state[ astro::xPositionIndex ],
+                                state[ astro::yPositionIndex ],
+                                state[ astro::zPositionIndex ] } );
+
         // Compute the total acceleration acting on the system as a sum of the forces.
         // Central body gravity is included by default.
-        State acceleration ( astro::computeCentralBodyAcceleration(
-                                gravitationalParameter,
-                                Vector( { state[ astro::xPositionIndex ],
-                                          state[ astro::yPositionIndex ],
-                                          state[ astro::zPositionIndex ] } ) ) );
+        State acceleration( astro::computeCentralBodyAcceleration( gravitationalParameter,
+                                                                   position ) );
 
         // Add J2 acceleration if model is set to active.
         if ( isJ2AccelerationModelActive )
         {
-            // acceleration = sml::add( acceleration,
-            //                          astro::computeJ2Acceleration( gravitationalParameter,
-            //                                                        position,
-            //                                                        equatorialRadius,
-            //                                                        j2Coefficient ) );
+            acceleration = acceleration + astro::computeJ2Acceleration( gravitationalParameter,
+                                                                        position,
+                                                                        equatorialRadius,
+                                                                        j2Coefficient );
         }
 
         // Add solar radiation pressure acceleration if model is set to active.

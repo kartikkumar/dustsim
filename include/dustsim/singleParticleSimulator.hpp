@@ -61,6 +61,8 @@ public:
      * @param[in] aStepSize                   Step size for integration                          [s]
      * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
      * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
+     * @param[in] aMinimumStepSize            Minimum allowable step size for integrator         [s]
+     * @param[in] aMaximumStepSize            Maximum allowable step size for integrator         [s]
      * @param[in] aMetadataFilePath           Path to output file for metadata
      * @param[in] aStateHistoryFilePath       Path to output file for state history
      */
@@ -79,6 +81,8 @@ public:
                                   const Real            aStepSize,
                                   const Real            aRelativeTolerance,
                                   const Real            anAbsoluteTolerance,
+                                  const Real            aMinimumStepSize,
+                                  const Real            aMaximumStepSize,
                                   const std::string&    aMetadataFilePath,
                                   const std::string&    aStateHistoryFilePath )
         : gravitationalParameter( aGravitationalParameter ),
@@ -96,6 +100,8 @@ public:
           timeStep( aStepSize ),
           relativeTolerance( aRelativeTolerance ),
           absoluteTolerance( anAbsoluteTolerance ),
+          minimumStepSize( aMinimumStepSize ),
+          maximumStepSize( aMaximumStepSize ),
           metadataFilePath( aMetadataFilePath ),
           stateHistoryFilePath( aStateHistoryFilePath )
     { }
@@ -145,6 +151,12 @@ public:
 
     //! Absolute tolerance for numerical integrator [-].
     const Real absoluteTolerance;
+
+    //! Minimum allowable step size for numerical integrator [-].
+    const Real minimumStepSize;
+
+    //! Maximum allowable step size for numerical integrator [-].
+    const Real maximumStepSize;
 
     //! Metadata file path.
     const std::string metadataFilePath;

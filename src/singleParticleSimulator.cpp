@@ -12,10 +12,10 @@
 #include <vector>
 
 #include <astro/astro.hpp>
+
 #include <integrate/integrate.hpp>
 
 #include "dustsim/dynamicalSystem.hpp"
-#include "dustsim/outputWriter.hpp"
 #include "dustsim/singleParticleSimulator.hpp"
 #include "dustsim/tools.hpp"
 
@@ -40,9 +40,10 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << "Cartesian initial state            (" << initialState << ")" << std::endl;
     std::cout << std::endl;
 
-    // Set current tune and state to initial time and state.
+    // Set current time and state and step size to initial values specified by user.
     State currentState = initialState;
     Real currentTime = input.startTime;
+    Real currentStepSize = input.timeStep;
 
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
@@ -97,25 +98,75 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     // Create file stream to write state history to.
     std::ofstream stateHistoryFile( input.stateHistoryFilePath );
     stateHistoryFile << "t,x,y,z,xdot,ydot,zdot,a,e,i,aop,raan,ta" << std::endl;
-    StateHistoryWriter writer( stateHistoryFile,
-                               input.gravitationalParameter );
 
     // Set up numerical integrator.
     std::cout << "Exeucting numerical integration ..." << std::endl;
+    auto stateDerivativePointer = std::bind( &DynamicalSystem::operator( ),
+                                             &dynamics,
+                                             std::placeholders::_1,
+                                             std::placeholders::_2 );
     if ( input.integrator == rk4 )
     {
-        auto stateDerivativePointer = std::bind( &DynamicalSystem::operator( ),
-                                                 &dynamics,
-                                                 std::placeholders::_1,
-                                                 std::placeholders::_2 );
 
         while ( currentTime < input.endTime )
         {
             integrate::stepRK4< Real, State >( currentTime,
                                                currentState,
-                                               input.timeStep,
+                                               currentStepSize,
                                                stateDerivativePointer );
-            writer( currentTime, currentState );
+
+            const State currentStateInKeplerElements
+                = astro::convertCartesianToKeplerianElements( currentState,
+                                                              input.gravitationalParameter );
+
+            stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
+                             << currentTime << ","
+                             << currentState << ","
+                             << currentStateInKeplerElements << std::endl;
+        }
+    }
+    else if ( input.integrator == rkf45 )
+    {
+        while ( currentTime < input.endTime )
+        {
+            integrate::stepRKF45< Real, State >( currentTime,
+                                                 currentState,
+                                                 currentStepSize,
+                                                 stateDerivativePointer,
+                                                 input.relativeTolerance,
+                                                 input.minimumStepSize,
+                                                 input.maximumStepSize );
+
+            const State currentStateInKeplerElements
+                = astro::convertCartesianToKeplerianElements( currentState,
+                                                              input.gravitationalParameter );
+
+            stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
+                             << currentTime << ","
+                             << currentState << ","
+                             << currentStateInKeplerElements << std::endl;
+        }
+    }
+    else if ( input.integrator == rkf78 )
+    {
+        while ( currentTime < input.endTime )
+        {
+            integrate::stepRKF78< Real, State >( currentTime,
+                                                 currentState,
+                                                 currentStepSize,
+                                                 stateDerivativePointer,
+                                                 input.relativeTolerance,
+                                                 input.minimumStepSize,
+                                                 input.maximumStepSize );
+
+            const State currentStateInKeplerElements
+                = astro::convertCartesianToKeplerianElements( currentState,
+                                                              input.gravitationalParameter );
+
+            stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
+                             << currentTime << ","
+                             << currentState << ","
+                             << currentStateInKeplerElements << std::endl;
         }
     }
 
@@ -200,17 +251,13 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     Integrator integrator = rk4;
     if ( integratorString.compare( "rk4" ) != 0 )
     {
-        if ( integratorString.compare( "rkf78" ) == 0 )
+        if ( integratorString.compare( "rkf45" ) == 0 )
+        {
+            integrator = rkf45;
+        }
+        else if ( integratorString.compare( "rkf78" ) == 0 )
         {
             integrator = rkf78;
-        }
-        else if ( integratorString.compare( "dopri5" ) == 0 )
-        {
-            integrator = dopri5;
-        }
-        else if ( integratorString.compare( "bs" ) == 0 )
-        {
-            integrator = bs;
         }
         else
         {
@@ -237,6 +284,12 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     const Real absoluteTolerance    = find( config, "absolute_tolerance" )->value.GetDouble( );
     std::cout << "Absolute tolerance                 " << absoluteTolerance << " [-]" << std::endl;
 
+    // Extract integrator step size bounds.
+    const Real minimumStepSize    = find( config, "minimum_step_size" )->value.GetDouble( );
+    std::cout << "Minimum step size                  " << minimumStepSize << " [-]" << std::endl;
+    const Real maximumStepSize    = find( config, "maximum_step_size" )->value.GetDouble( );
+    std::cout << "Maximum step size                  " << maximumStepSize << " [-]" << std::endl;
+
     // Extract file writer settings.
     const std::string metadataFilePath
         = find( config, "metadata_file_path" )->value.GetString( );
@@ -260,6 +313,8 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
                                          timeStep,
                                          relativeTolerance,
                                          absoluteTolerance,
+                                         minimumStepSize,
+                                         maximumStepSize,
                                          metadataFilePath,
                                          stateHistoryFilePath );
 }

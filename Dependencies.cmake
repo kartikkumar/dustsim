@@ -13,18 +13,6 @@ find_package(Threads)
 
 # -------------------------------
 
-# Boost: https://boost.org
-
-find_package(Boost)
-
-if(NOT APPLE)
-  include_directories(SYSTEM AFTER "${Boost_INCLUDE_DIRS}")
-else(APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${Boost_INCLUDE_DIRS}\"")
-endif(NOT APPLE)
-
-# -------------------------------
-
 # SQLiteCpp: https://github.com/srombauts/sqlitecpp
 
 if(NOT BUILD_DEPENDENCIES)
