@@ -415,60 +415,60 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
                     = astro::convertCartesianToKeplerianElements(
                         previousState, input.gravitationalParameter );
 
-                // To avoid locking of the database, this section is thread-critical, so will be
-                // executed one-by-one by multiple threads.
-#pragma omp critical( writeOutputToDatabase )
-                {
-                    simulationResultsInsertQuery.bind( ":simulation_id", simulationId );
-                    simulationResultsInsertQuery.bind( ":time", previousTime );
-                    simulationResultsInsertQuery.bind(
-                        ":semi_major_axis",
-                        stateInKeplerianElements[ astro::semiMajorAxisIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":eccentricity",
-                        stateInKeplerianElements[ astro::eccentricityIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":inclination",
-                        stateInKeplerianElements[ astro::inclinationIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":argument_of_periapsis",
-                        stateInKeplerianElements[ astro::argumentOfPeriapsisIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":longitude_of_ascending_node",
-                        stateInKeplerianElements[ astro::longitudeOfAscendingNodeIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":true_anomaly",
-                        stateInKeplerianElements[ astro::trueAnomalyIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":x_position", state[ astro::xPositionIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":y_position", state[ astro::yPositionIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":z_position", state[ astro::zPositionIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":x_velocity", state[ astro::xVelocityIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":y_velocity", state[ astro::yVelocityIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":z_velocity", state[ astro::zVelocityIndex ] );
-                    simulationResultsInsertQuery.bind( ":x_unit_position_sun", 0.0 );
-                    simulationResultsInsertQuery.bind( ":y_unit_position_sun", 0.0 );
-                    simulationResultsInsertQuery.bind( ":z_unit_position_sun", 0.0 );
+//                 // To avoid locking of the database, this section is thread-critical, so will be
+//                 // executed one-by-one by multiple threads.
+// #pragma omp critical( writeOutputToDatabase )
+//                 {
+//                     simulationResultsInsertQuery.bind( ":simulation_id", simulationId );
+//                     simulationResultsInsertQuery.bind( ":time", previousTime );
+//                     simulationResultsInsertQuery.bind(
+//                         ":semi_major_axis",
+//                         stateInKeplerianElements[ astro::semiMajorAxisIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":eccentricity",
+//                         stateInKeplerianElements[ astro::eccentricityIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":inclination",
+//                         stateInKeplerianElements[ astro::inclinationIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":argument_of_periapsis",
+//                         stateInKeplerianElements[ astro::argumentOfPeriapsisIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":longitude_of_ascending_node",
+//                         stateInKeplerianElements[ astro::longitudeOfAscendingNodeIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":true_anomaly",
+//                         stateInKeplerianElements[ astro::trueAnomalyIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":x_position", state[ astro::xPositionIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":y_position", state[ astro::yPositionIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":z_position", state[ astro::zPositionIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":x_velocity", state[ astro::xVelocityIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":y_velocity", state[ astro::yVelocityIndex ] );
+//                     simulationResultsInsertQuery.bind(
+//                         ":z_velocity", state[ astro::zVelocityIndex ] );
+//                     simulationResultsInsertQuery.bind( ":x_unit_position_sun", 0.0 );
+//                     simulationResultsInsertQuery.bind( ":y_unit_position_sun", 0.0 );
+//                     simulationResultsInsertQuery.bind( ":z_unit_position_sun", 0.0 );
 
-                    // Execute insert query.
-                    simulationResultsInsertQuery.executeStep( );
+//                     // Execute insert query.
+//                     simulationResultsInsertQuery.executeStep( );
 
-                    // Reset SQL insert query.
-                    simulationResultsInsertQuery.reset( );
+//                     // Reset SQL insert query.
+//                     simulationResultsInsertQuery.reset( );
 
-                    initialStatesUpdateQuery.bind( ":simulation_id", simulationId );
+//                     initialStatesUpdateQuery.bind( ":simulation_id", simulationId );
 
-                    // Execute insert query.
-                    initialStatesUpdateQuery.executeStep( );
+//                     // Execute insert query.
+//                     initialStatesUpdateQuery.executeStep( );
 
-                    // Reset SQL insert query.
-                    initialStatesUpdateQuery.reset( );
-                }
+//                     // Reset SQL insert query.
+//                     initialStatesUpdateQuery.reset( );
+//                 }
 
                 outputIntervalCounter++;
             }
