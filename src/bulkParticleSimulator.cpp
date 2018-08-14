@@ -353,7 +353,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     // Set up database query.
     SQLite::Statement initialStatesUpdateQuery( database, initialStatesUpdateString.str( ) );
 
-#pragma omp parallel for schedule( dynamic ) num_threads( input.numberOfThreads )
+#pragma omp parallel for num_threads( input.numberOfThreads )
     // Loop through the table retrieved from the database, step-by-step and execute simulations.
     // OpenMP support for range-based for loops is not well-established, so using integer loop
     // instead.
