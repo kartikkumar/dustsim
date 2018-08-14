@@ -146,16 +146,25 @@ plt.grid()
 
 plt.plot(initial_states['semi_major_axis'],zero_change,marker='.',color='k',linestyle='None')
 
-for x in range(1,len(times)):
-    # a_time = simulation_results[simulation_results['time'] == times[x-1]]['time']
-    # semi_major_axis = simulation_results[simulation_results['time'] == times[x-1]]['semi_major_axis']
-    print(simulation_results['time'])
-    # semi_major_axis_change = pd.DataFrame(semi_major_axis.values-initial_states['semi_major_axis'].values)
-    # plt.plot(initial_states['semi_major_axis'],semi_major_axis_change,marker='.',color='k',linestyle='None')
+simulation_id_mask = simulation_results['simulation_id'] == 1
+simulation_times = simulation_results['time'][simulation_id_mask]
+semi_major_axis_change = simulation_results['semi_major_axis'][simulation_id_mask] - simulation_results['semi_major_axis'][simulation_id_mask][0]
 
-# # Save figure.
-# plt.tight_layout()
-# plt.savefig(output_path_prefix + config["semi_major_axis_change_figure"], dpi=config["figure_dpi"])
+print(initial_states['semi_major_axis'][initial_states['simulation_id'] == 1][0])
+
+# plt.plot(initial_states['semi_major_axis'],zero_change,marker='.',color='k',linestyle='None')
+
+
+# for x in range(1,len(times)):
+#     # a_time = simulation_results[simulation_results['time'] == times[x-1]]['time']
+    # semi_major_axis = simulation_results[simulation_results['time'] == times[x-1]]['semi_major_axis']
+#     print(simulation_results['time'])
+#     # semi_major_axis_change = pd.DataFrame(semi_major_axis.values-initial_states['semi_major_axis'].values)
+#     # plt.plot(initial_states['semi_major_axis'],semi_major_axis_change,marker='.',color='k',linestyle='None')
+
+# Save figure.
+plt.tight_layout()
+plt.savefig(output_path_prefix + config["semi_major_axis_change_figure"], dpi=config["figure_dpi"])
 
 # # Generate eccentricity change figure.
 # fig = plt.figure()
