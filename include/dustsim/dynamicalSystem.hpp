@@ -92,15 +92,15 @@ public:
                                                                         j2Coefficient );
         }
 
-        // Add solar radiation pressure acceleration if model is set to active.
-        if ( isRadiationPressureAccelerationModelActive )
-        {
-            // acceleration = sml::add( acceleration,
-            //                          astro::computeJ2Acceleration( gravitationalParameter,
-            //                                                        position,
-            //                                                        equatorialRadius,
-            //                                                        j2Coefficient ) );
-        }
+        // // Add solar radiation pressure acceleration if model is set to active.
+        // if ( isRadiationPressureAccelerationModelActive )
+        // {
+        //     acceleration = sml::add( acceleration,
+        //                              astro::computeJ2Acceleration( gravitationalParameter,
+        //                                                            position,
+        //                                                            equatorialRadius,
+        //                                                            j2Coefficient ) );
+        // }
 
         return State( { state[ 3 ],
                         state[ 4 ],
