@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, K. Kumar, Delft University of Technology (me@kartikkumar.com)
+ * Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
@@ -278,7 +278,8 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         const Real meanAnomaly = meanAnomalyGenerator( randomNumberGenerator );
 
         // Compute true anomaly from mean anomaly [rad].
-        // @TODO: replace mean-to-eccentric anomaly conversion with implementation in openastro.
+        // @TODO: replace mean-to-eccentric anomaly conversion with implementation in
+        // openastro/astro.
         const Real eccentricAnomaly = kep_toolbox::m2e( meanAnomaly, eccentricity );
         const Real trueAnomaly
             = astro::convertEccentricAnomalyToTrueAnomaly( eccentricAnomaly, eccentricity );

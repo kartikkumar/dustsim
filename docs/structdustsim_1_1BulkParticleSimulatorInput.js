@@ -1,0 +1,28 @@
+var structdustsim_1_1BulkParticleSimulatorInput =
+[
+    [ "BulkParticleSimulatorInput", "structdustsim_1_1BulkParticleSimulatorInput.html#acf4dc13f82ac91f46d87a20a2c4af86f", null ],
+    [ "numberOfThreads", "structdustsim_1_1BulkParticleSimulatorInput.html#a028fac4c806e936576f4b3610ebdd6cd", null ],
+    [ "numberOfParticles", "structdustsim_1_1BulkParticleSimulatorInput.html#aff010faa6e8db5f123eac7a85d275690", null ],
+    [ "gravitationalParameter", "structdustsim_1_1BulkParticleSimulatorInput.html#a96c1938e3cc19ef007305e7d81e26a94", null ],
+    [ "isJ2AccelerationModelActive", "structdustsim_1_1BulkParticleSimulatorInput.html#a7be2741d1bfa1cc861d6007f8490ecd8", null ],
+    [ "j2Coefficient", "structdustsim_1_1BulkParticleSimulatorInput.html#a16bcf3f2549d825471d3916793a7ffba", null ],
+    [ "equatorialRadius", "structdustsim_1_1BulkParticleSimulatorInput.html#aeda0398b74cbac7be81e2e298b2b960d", null ],
+    [ "isRadiationPressureAccelerationModelActive", "structdustsim_1_1BulkParticleSimulatorInput.html#ac73e66129fa897ec8dd030ba5ae554b5", null ],
+    [ "particleRadius", "structdustsim_1_1BulkParticleSimulatorInput.html#a362f5ea175df38ff2f93c6cf41d8c3e1", null ],
+    [ "particleBulkDensity", "structdustsim_1_1BulkParticleSimulatorInput.html#a1cfad92e8afce668ba29b377b400e50d", null ],
+    [ "radiationPressureCoefficient", "structdustsim_1_1BulkParticleSimulatorInput.html#ac5b131a2323d1ed4d89a738198efd4fe", null ],
+    [ "semiMajorAxisMinimum", "structdustsim_1_1BulkParticleSimulatorInput.html#a4812fccceef9e62fc883aa795084bbe4", null ],
+    [ "semiMajorAxisMaximum", "structdustsim_1_1BulkParticleSimulatorInput.html#a1bc85288b8dc29f4f12d5648fa2c5111", null ],
+    [ "eccentricityFullWidthHalfMaximum", "structdustsim_1_1BulkParticleSimulatorInput.html#a8957db2a40234df45d61707682bddffb", null ],
+    [ "inclinationFullWidthHalfMaximum", "structdustsim_1_1BulkParticleSimulatorInput.html#a1c732f6dda1abfdc3eb69c2d1e578dc5", null ],
+    [ "integrator", "structdustsim_1_1BulkParticleSimulatorInput.html#a9d415fcf71e6a1a3d341df1f51508131", null ],
+    [ "startTime", "structdustsim_1_1BulkParticleSimulatorInput.html#a69a51815a8b51253a83ce6f61828370f", null ],
+    [ "timeStep", "structdustsim_1_1BulkParticleSimulatorInput.html#a36b09e993bddf6315965e8dda978d1f9", null ],
+    [ "endTime", "structdustsim_1_1BulkParticleSimulatorInput.html#acf63348fb27913aa82cfed12ebbd0922", null ],
+    [ "relativeTolerance", "structdustsim_1_1BulkParticleSimulatorInput.html#ac293e1c63b5cc149420523159af80568", null ],
+    [ "absoluteTolerance", "structdustsim_1_1BulkParticleSimulatorInput.html#ac798de45766d64aef2663983e66a2feb", null ],
+    [ "minimumStepSize", "structdustsim_1_1BulkParticleSimulatorInput.html#a7b24af13ee1ee52988db5507719af2b9", null ],
+    [ "maximumStepSize", "structdustsim_1_1BulkParticleSimulatorInput.html#a8c4afba6f25150c97397c1d6650bb4ed", null ],
+    [ "outputInterval", "structdustsim_1_1BulkParticleSimulatorInput.html#a315391bfc521ab3370a11786dd9d430f", null ],
+    [ "databaseFilePath", "structdustsim_1_1BulkParticleSimulatorInput.html#ac11a5c2ed22f387bda8886ef33bf683d", null ]
+];

@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2017, K. Kumar, Delft University of Technology (me@kartikkumar.com)
+Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

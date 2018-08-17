@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, K. Kumar, Delft University of Technology (me@kartikkumar.com)
+ * Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
@@ -25,7 +25,7 @@ int main( const int numberOfInputs, const char* inputArguments[ ] )
     std::cout << std::endl;
     std::cout << "                              dustsim                             " << std::endl;
     std::cout << std::endl;
-    std::cout << "   Copyright (c) 2017, K. Kumar, TU Delft (me@kartikkumar.com)    " << std::endl;
+    std::cout << " Copyright (c) 2009-2018, K. Kumar, TU Delft (me@kartikkumar.com) " << std::endl;
     std::cout << std::endl;
     std::cout << "------------------------------------------------------------------" << std::endl;
     std::cout << std::endl;
