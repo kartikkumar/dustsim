@@ -51,9 +51,9 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << std::endl;
 
     // Set current time and state and step size to initial values specified by user.
-    State currentState = initialState;
-    Real currentTime = input.startTime;
-    Real currentStepSize = input.timeStep;
+    State state = initialState;
+    Real time = input.startTime;
+    Real stepSize = input.timeStep;
 
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
@@ -109,76 +109,125 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
 
     // Create file stream to write state history to.
     std::ofstream stateHistoryFile( input.stateHistoryFilePath );
-    stateHistoryFile << "t,x,y,z,xdot,ydot,zdot,a,e,i,aop,raan,ta" << std::endl;
+    stateHistoryFile << "t,dt,x,y,z,xdot,ydot,zdot,a,e,i,aop,raan,ta" << std::endl;
 
     // Set up numerical integrator.
-    std::cout << "Exeucting numerical integration ..." << std::endl;
+    std::cout << "Executing numerical integration ..." << std::endl;
     auto stateDerivativePointer = std::bind( &DynamicalSystem::operator( ),
                                              &dynamics,
                                              std::placeholders::_1,
                                              std::placeholders::_2 );
+
+    // Write initial data to state history file.
+    stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
+                     << time << ","
+                     << stepSize << ", "
+                     << state << ","
+                     << astro::convertCartesianToKeplerianElements(
+                            state, input.gravitationalParameter ) << std::endl;
+
     if ( input.integrator == rk4 )
     {
-
-        while ( currentTime < input.endTime )
+        while ( time < input.endTime )
         {
-            integrate::stepRK4< Real, State >( currentTime,
-                                               currentState,
-                                               currentStepSize,
+
+            integrate::stepRK4< Real, State >( time,
+                                               state,
+                                               stepSize,
                                                stateDerivativePointer );
 
-            const State currentStateInKeplerElements
-                = astro::convertCartesianToKeplerianElements( currentState,
+            const State stateInKeplerElements
+                = astro::convertCartesianToKeplerianElements( state,
                                                               input.gravitationalParameter );
 
             stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
-                             << currentTime << ","
-                             << currentState << ","
-                             << currentStateInKeplerElements << std::endl;
+                             << time << ","
+                             << stepSize << ","
+                             << state << ","
+                             << stateInKeplerElements << std::endl;
         }
     }
     else if ( input.integrator == rkf45 )
     {
-        while ( currentTime < input.endTime )
+        while ( time < input.endTime )
         {
-            integrate::stepRKF45< Real, State >( currentTime,
-                                                 currentState,
-                                                 currentStepSize,
+            integrate::stepRKF45< Real, State >( time,
+                                                 state,
+                                                 stepSize,
                                                  stateDerivativePointer,
                                                  input.relativeTolerance,
                                                  input.minimumStepSize,
                                                  input.maximumStepSize );
 
-            const State currentStateInKeplerElements
-                = astro::convertCartesianToKeplerianElements( currentState,
+            const State stateInKeplerElements
+                = astro::convertCartesianToKeplerianElements( state,
                                                               input.gravitationalParameter );
 
             stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
-                             << currentTime << ","
-                             << currentState << ","
-                             << currentStateInKeplerElements << std::endl;
+                             << time << ","
+                             << stepSize << ","
+                             << state << ","
+                             << stateInKeplerElements << std::endl;
         }
     }
     else if ( input.integrator == rkf78 )
     {
-        while ( currentTime < input.endTime )
+        Int outputIntervalCounter = 1;
+
+        while ( time < input.endTime )
         {
-            integrate::stepRKF78< Real, State >( currentTime,
-                                                 currentState,
-                                                 currentStepSize,
+            Real previousTime = time;
+            State previousState = state;
+
+            integrate::stepRKF78< Real, State >( time,
+                                                 state,
+                                                 stepSize,
                                                  stateDerivativePointer,
                                                  input.relativeTolerance,
                                                  input.minimumStepSize,
                                                  input.maximumStepSize );
 
-            const State currentStateInKeplerElements
-                = astro::convertCartesianToKeplerianElements( currentState,
-                                                              input.gravitationalParameter );
+            Real nextOutputTime = input.startTime + input.outputInterval * outputIntervalCounter;
 
-            stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
-                             << currentTime << ","
-                             << currentState << ","
-                             << currentStateInKeplerElements << std::endl;
+            if ( input.outputInterval > 0.0 )
+            {
+                while ( time > nextOutputTime + input.minimumStepSize )
+                {
+                    Real outputStepSize = ( nextOutputTime - previousTime );
+
+                    integrate::stepRKF78< Real, State >( previousTime,
+                                                         previousState,
+                                                         outputStepSize,
+                                                         stateDerivativePointer,
+                                                         input.relativeTolerance,
+                                                         input.minimumStepSize,
+                                                         input.maximumStepSize );
+                    const State stateInKeplerElements
+                        = astro::convertCartesianToKeplerianElements( previousState,
+                                                                      input.gravitationalParameter );
+
+                    stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
+                                     << previousTime << ","
+                                     << input.outputInterval << ","
+                                     << previousState << ","
+                                     << stateInKeplerElements << std::endl;
+
+                    outputIntervalCounter++;
+                    nextOutputTime = input.startTime + input.outputInterval * outputIntervalCounter;
+                }
+            }
+            else
+            {
+                const State stateInKeplerElements
+                    = astro::convertCartesianToKeplerianElements( state,
+                                                                  input.gravitationalParameter );
+
+                stateHistoryFile << std::setprecision( std::numeric_limits< double >::digits10 )
+                                 << time << ","
+                                 << stepSize << ","
+                                 << state << ","
+                                 << stateInKeplerElements << std::endl;
+            }
         }
     }
 
@@ -311,9 +360,12 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
 
     // Extract integrator step size bounds.
     const Real minimumStepSize    = find( config, "minimum_step_size" )->value.GetDouble( );
-    std::cout << "Minimum step size                  " << minimumStepSize << " [-]" << std::endl;
+    std::cout << "Minimum step size                  " << minimumStepSize << " [s]" << std::endl;
     const Real maximumStepSize    = find( config, "maximum_step_size" )->value.GetDouble( );
-    std::cout << "Maximum step size                  " << maximumStepSize << " [-]" << std::endl;
+    std::cout << "Maximum step size                  " << maximumStepSize << " [s]" << std::endl;
+
+    const Real outputInterval    = find( config, "output_interval" )->value.GetDouble( );
+    std::cout << "Output interval                    " << outputInterval << " [s]" << std::endl;
 
     // Extract file writer settings.
     const std::string metadataFilePath
@@ -343,6 +395,7 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
                                          absoluteTolerance,
                                          minimumStepSize,
                                          maximumStepSize,
+                                         outputInterval,
                                          metadataFilePath,
                                          stateHistoryFilePath );
 }

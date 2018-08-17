@@ -65,6 +65,7 @@ public:
      * @param[in] anAbsoluteTolerance           Absolute tolerance for integrator                [-]
      * @param[in] aMinimumStepSize              Minimum allowable step size for integrator       [s]
      * @param[in] aMaximumStepSize              Maximum allowable step size for integrator       [s]
+     * @param[in] anOutputInterval              Fixed output interval for integrator             [s]
      * @param[in] aMetadataFilePath             Path to output file for metadata
      * @param[in] aStateHistoryFilePath         Path to output file for state history
      */
@@ -88,6 +89,7 @@ public:
                                   const Real            anAbsoluteTolerance,
                                   const Real            aMinimumStepSize,
                                   const Real            aMaximumStepSize,
+                                  const Real            anOutputInterval,
                                   const std::string&    aMetadataFilePath,
                                   const std::string&    aStateHistoryFilePath )
         : gravitationalParameter( aGravitationalParameter ),
@@ -110,6 +112,7 @@ public:
           absoluteTolerance( anAbsoluteTolerance ),
           minimumStepSize( aMinimumStepSize ),
           maximumStepSize( aMaximumStepSize ),
+          outputInterval( anOutputInterval ),
           metadataFilePath( aMetadataFilePath ),
           stateHistoryFilePath( aStateHistoryFilePath )
     { }
@@ -174,6 +177,9 @@ public:
 
     //! Maximum allowable step size for numerical integrator [-].
     const Real maximumStepSize;
+
+    //! A fixed output interval for numerical integrator [s].
+    const Real outputInterval;
 
     //! Metadata file path.
     const std::string metadataFilePath;

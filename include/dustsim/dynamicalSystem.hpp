@@ -101,20 +101,11 @@ public:
         if ( isRadiationPressureAccelerationModelActive )
         {
             // Compute unit vector to the Sun based on elapsed time.
+            // Inclination of central body around Sun is assumed to be zero.
             const Real elapsedOrbitAngle = solarMeanMotion * time;
             const Vector unitVectorToSun( { std::cos( elapsedOrbitAngle ),
-                                            std::sin( elapsedOrbitAngle ) } );
-
-            const Vector temp = astro::computeRadiationPressureAcceleration(
-                                radiationPressure,
-                                radiationPressureCoefficient,
-                                unitVectorToSun,
-                                particleRadius,
-                                particleBulkDensity );
-
-            std::cout << temp[0] << ", " << temp[1] << ", " << temp[2] << std::endl;
-            exit( 0 );
-
+                                            std::sin( elapsedOrbitAngle ),
+                                            0.0 } );
             acceleration = acceleration
                            + astro::computeRadiationPressureAcceleration(
                                 radiationPressure,

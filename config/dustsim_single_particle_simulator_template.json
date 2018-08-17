@@ -70,7 +70,7 @@
 
     // Set up integrator time parameters.
     "start_time"                            : 0.0,
-    "end_time"                              : 8640000.0,
+    "end_time"                              : 864000.0,
     "time_step"                             : 10.0,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
@@ -79,13 +79,19 @@
 
     // Set up integrator step size bounds (only applicable for adaptive step size integrators).
     "minimum_step_size"                     : 1.0e-10,
-    "maximum_step_size"                     : 1000.0,
+    "maximum_step_size"                     : 3000.0,
+
+    // Set fixed output interval [s].
+    // If this is set to 0.0, output is written to file for each step that the integrator takes.
+    // If this is set to any positive value, output is only written to file at the specified fixed
+    // interval (only applicable for adaptive step size integrators).
+    "output_interval"                       : 3600.0,
 
     ////
     // Output
     ////
 
     // Set up file writer options.
-    "metadata_file_path"                    : "",
-    "state_history_file_path"               : ""
+    "metadata_file_path"                    : "/Users/kartikkumar/Desktop/metadata.csv",
+    "state_history_file_path"               : "/Users/kartikkumar/Desktop/state_history.csv"
 }
