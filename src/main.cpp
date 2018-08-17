@@ -88,7 +88,7 @@ int main( const int numberOfInputs, const char* inputArguments[ ] )
     else if ( mode.compare( "bulk_particle_simulator") == 0 )
     {
         std::cout << "Mode                               " << mode << std::endl;
-        dustsim::executeBulkParticleSimulator( config );
+        // dustsim::executeBulkParticleSimulator( config );
     }
     else
     {

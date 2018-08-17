@@ -1,6 +1,6 @@
 var structdustsim_1_1SingleParticleSimulatorInput =
 [
-    [ "SingleParticleSimulatorInput", "structdustsim_1_1SingleParticleSimulatorInput.html#ac1a40ce06250ba6e3559679c54dd6a24", null ],
+    [ "SingleParticleSimulatorInput", "structdustsim_1_1SingleParticleSimulatorInput.html#a0e5d85c32ba27525cf7ea6a0420d0df2", null ],
     [ "gravitationalParameter", "structdustsim_1_1SingleParticleSimulatorInput.html#ab33e5ca689356590fc223810755809c5", null ],
     [ "isJ2AccelerationModelActive", "structdustsim_1_1SingleParticleSimulatorInput.html#a58341d217a9ffaf30a319d6f853e7dbf", null ],
     [ "j2Coefficient", "structdustsim_1_1SingleParticleSimulatorInput.html#a4085ce2dedc0faaffc251eae221aed09", null ],
@@ -9,6 +9,9 @@ var structdustsim_1_1SingleParticleSimulatorInput =
     [ "particleRadius", "structdustsim_1_1SingleParticleSimulatorInput.html#a6123f21d5e12ca48aefeb12d3919ef27", null ],
     [ "particleBulkDensity", "structdustsim_1_1SingleParticleSimulatorInput.html#ac44cadcac394e0d1ddee219f98a6dc22", null ],
     [ "radiationPressureCoefficient", "structdustsim_1_1SingleParticleSimulatorInput.html#a348c0d81092e05254f83b0d0a19fb217", null ],
+    [ "solarDistance", "structdustsim_1_1SingleParticleSimulatorInput.html#aabc428a2437113169a9a8e42735cc740", null ],
+    [ "solarGravitationalParameter", "structdustsim_1_1SingleParticleSimulatorInput.html#a977d0d8320dd21f543479c22a6ee812e", null ],
+    [ "solarEnergyFlux", "structdustsim_1_1SingleParticleSimulatorInput.html#a662b58b5af766a398f40d57b154ccf08", null ],
     [ "initialStateKeplerianElements", "structdustsim_1_1SingleParticleSimulatorInput.html#a29b2b3c5b2316ddcdd891ed078433b95", null ],
     [ "integrator", "structdustsim_1_1SingleParticleSimulatorInput.html#a5d2e0ec4f203599e401dd23e0860b2ee", null ],
     [ "startTime", "structdustsim_1_1SingleParticleSimulatorInput.html#aae576430494255d4c6c3b993285d8c8c", null ],

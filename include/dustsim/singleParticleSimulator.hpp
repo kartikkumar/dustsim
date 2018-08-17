@@ -44,27 +44,29 @@ public:
      * Constructs data struct based on verified input parameters.
      *
      * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
-     * @param[in] aGravitationalParameter     Gravitational parameter of central body    [km^3 s^-2]
-     * @param[in] aJ2AccelerationModelFlag    Flag indicating if J2 acceleration model is active
-     * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
-     * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
-     * @param[in] aRadiationPressureFlag      Flag indicating if radiation pressure acceleration
-     *                                        model is active
-     * @param[in] aParticleRadius             Radius of dust particle                       [micron]
-     * @param[in] aParticleBulkDensity        Bulk density of dust particle                [kg m^-3]
-     * @param[in] aRadiationPressureCoefficient
-     *                                        Radiation pressure coefficient                     [-]
-     * @param[in] anInitialKeplerState        Initial state in Keplerian elements
-     * @param[in] anIntegrator                Name of selected numerical integrator
-     * @param[in] aStartTime                  Start time for integration                         [s]
-     * @param[in] anEndTime                   End time for integration                           [s]
-     * @param[in] aStepSize                   Step size for integration                          [s]
-     * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
-     * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
-     * @param[in] aMinimumStepSize            Minimum allowable step size for integrator         [s]
-     * @param[in] aMaximumStepSize            Maximum allowable step size for integrator         [s]
-     * @param[in] aMetadataFilePath           Path to output file for metadata
-     * @param[in] aStateHistoryFilePath       Path to output file for state history
+     * @param[in] aGravitationalParameter       Gravitational parameter of central body  [km^3 s^-2]
+     * @param[in] aJ2AccelerationModelFlag      Flag indicating if J2 acceleration model is active
+     * @param[in] aJ2Coefficient                J2 coefficient of gravity expansion              [-]
+     * @param[in] anEquatorialRadius            Equatiorial radius for gravity expansion        [km]
+     * @param[in] aRadiationPressureFlag        Flag indicating if radiation pressure acceleration
+     *                                          model is active
+     * @param[in] aParticleRadius               Radius of dust particle                     [micron]
+     * @param[in] aParticleBulkDensity          Bulk density of dust particle              [kg m^-3]
+     * @param[in] aRadiationPressureCoefficient Radiation pressure coefficient                   [-]
+     * @param[in] aSolarDistance                Average distance of central body from the Sun   [AU]
+     * @param[in] aSolarGravitationalParameter  Gravitational parameter of the Sun       [km^3 s^-2]
+     * @param[in] aSolarEnergyFlux              Average energy flux at solar distance       [W m^-2]
+     * @param[in] anInitialKeplerState          Initial state in Keplerian elements
+     * @param[in] anIntegrator                  Name of selected numerical integrator
+     * @param[in] aStartTime                    Start time for integration                       [s]
+     * @param[in] anEndTime                     End time for integration                         [s]
+     * @param[in] aStepSize                     Step size for integration                        [s]
+     * @param[in] aRelativeTolerance            Relative tolerance for integrator                [-]
+     * @param[in] anAbsoluteTolerance           Absolute tolerance for integrator                [-]
+     * @param[in] aMinimumStepSize              Minimum allowable step size for integrator       [s]
+     * @param[in] aMaximumStepSize              Maximum allowable step size for integrator       [s]
+     * @param[in] aMetadataFilePath             Path to output file for metadata
+     * @param[in] aStateHistoryFilePath         Path to output file for state history
      */
     SingleParticleSimulatorInput( const Real            aGravitationalParameter,
                                   const bool            aJ2AccelerationModelFlag,
@@ -74,6 +76,9 @@ public:
                                   const Real            aParticleRadius,
                                   const Real            aParticleBulkDensity,
                                   const Real            aRadiationPressureCoefficient,
+                                  const Real            aSolarDistance,
+                                  const Real            aSolarGravitationalParameter,
+                                  const Real            aSolarEnergyFlux,
                                   const State&          anInitialKeplerState,
                                   const Integrator      anIntegrator,
                                   const Real            aStartTime,
@@ -93,6 +98,9 @@ public:
           particleRadius( aParticleRadius ),
           particleBulkDensity( aParticleBulkDensity ),
           radiationPressureCoefficient( aRadiationPressureCoefficient ),
+          solarDistance( aSolarDistance ),
+          solarGravitationalParameter( aSolarGravitationalParameter ),
+          solarEnergyFlux( aSolarEnergyFlux ),
           initialStateKeplerianElements( anInitialKeplerState ),
           integrator( anIntegrator ),
           startTime( aStartTime ),
@@ -130,6 +138,15 @@ public:
 
     //! Radiation pressure coefficient [-].
     const Real radiationPressureCoefficient;
+
+    //! Mean solar distance [AU].
+    const Real solarDistance;
+
+    //! Solar gravitational parameter [km^3 s^-2].
+    const Real solarGravitationalParameter;
+
+    //! Mean solar energy flux [W m^-2].
+    const Real solarEnergyFlux;
 
     //! Initial state in Keplerian elements [km, -, rad, rad, rad, rad].
     const State initialStateKeplerianElements;

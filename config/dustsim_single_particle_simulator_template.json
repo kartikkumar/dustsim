@@ -43,7 +43,14 @@
     "radiation_pressure_coefficient"        : 1.0,
 
     // Set mean distance to the Sun [AU].
-    // "mean_solar_distance"                :
+    "mean_solar_distance"                   : 20.0,
+
+    // Set gravitational parameter of the Sun [km^3 s^-2].
+    "solar_gravitatational_parameter"       : 1.32712440018e11,
+
+    // Set mean solar energy flux at mean distance from the Sun [W m^-2].
+    "mean_solar_energy_flux"                : 3.71,
+
 
     ////
     // Initial state

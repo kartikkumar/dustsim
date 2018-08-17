@@ -35,6 +35,15 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
     std::cout << "******************************************************************" << std::endl;
     std::cout << std::endl;
 
+    // Compute mean motion of central body around the Sun [rad/s].
+    const Real solarMeanMotion = astro::computeKeplerMeanMotion(
+        input.solarDistance * astro::ASTRO_AU_IN_KM, input.solarGravitationalParameter );
+
+    // Compute radiation pressure for complete absorption at distance of central body from the
+    // Sun [N m^-2].
+    const Real radiationPressure
+        = astro::computeAbsorptionRadiationPressure( input.solarEnergyFlux );
+
     // Compute initial state in Cartesian elements.
     const State initialState = astro::convertKeplerianToCartesianElements(
         input.initialStateKeplerianElements, input.gravitationalParameter );
@@ -55,7 +64,9 @@ void executeSingleParticleSimulator( const rapidjson::Document& config )
                               input.isRadiationPressureAccelerationModelActive,
                               input.particleRadius,
                               input.particleBulkDensity,
-                              input.radiationPressureCoefficient );
+                              input.radiationPressureCoefficient,
+                              solarMeanMotion,
+                              radiationPressure );
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
 
@@ -200,9 +211,9 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
     std::cout << "Is SRP model active?               "
               << ( radiationPressureFlag ? "true" : "false" ) << std::endl;
 
-    const Real particleRadius = find( config, "particle_radius" )->value.GetDouble( );
+    const Real particleRadius = find( config, "particle_radius" )->value.GetDouble( ) * 1.0e-6;
     std::cout << "Particle radius                    "
-              << particleRadius << " [micron]" << std::endl;
+              << particleRadius << " [m]" << std::endl;
 
     const Real particleBulkDensity = find( config, "particle_bulk_density" )->value.GetDouble( );
     std::cout << "Particle bulk density              "
@@ -212,6 +223,19 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
         = find( config, "radiation_pressure_coefficient" )->value.GetDouble( );
     std::cout << "Radiation pressure coefficient     "
               << radiationPressureCoefficient << " [-]" << std::endl;
+
+    const Real solarDistance = find( config, "mean_solar_distance" )->value.GetDouble( );
+    std::cout << "Mean solar distance                "
+              << solarDistance << " [AU]" << std::endl;
+
+    const Real solarGravitationalParameter
+        = find( config, "solar_gravitatational_parameter" )->value.GetDouble( );
+    std::cout << "Solar gravitational parameter      "
+              << solarGravitationalParameter << " [km^3 s^-2]" << std::endl;
+
+    const Real solarEnergyFlux  = find( config, "mean_solar_energy_flux" )->value.GetDouble( );
+    std::cout << "Mean solar energy flux             "
+              << solarEnergyFlux << " [W m^-2]" << std::endl;
 
     // Extract initial state of dust particle in Keplerian elements.
     ConfigIterator initialStateKeplerianElementsIterator = find( config, "initial_state_kepler" );
@@ -307,6 +331,9 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput( const rapidjson:
                                          particleRadius,
                                          particleBulkDensity,
                                          radiationPressureCoefficient,
+                                         solarDistance,
+                                         solarGravitationalParameter,
+                                         solarEnergyFlux,
                                          initialStateKeplerianElements,
                                          integrator,
                                          stateTime,
