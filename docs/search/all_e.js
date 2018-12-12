@@ -3,7 +3,7 @@ var searchData=
   ['semimajoraxismaximum',['semiMajorAxisMaximum',['../structdustsim_1_1BulkParticleSimulatorInput.html#a1bc85288b8dc29f4f12d5648fa2c5111',1,'dustsim::BulkParticleSimulatorInput']]],
   ['semimajoraxisminimum',['semiMajorAxisMinimum',['../structdustsim_1_1BulkParticleSimulatorInput.html#a4812fccceef9e62fc883aa795084bbe4',1,'dustsim::BulkParticleSimulatorInput']]],
   ['singleparticlesimulator_2ehpp',['singleParticleSimulator.hpp',['../singleParticleSimulator_8hpp.html',1,'']]],
-  ['singleparticlesimulatorinput',['SingleParticleSimulatorInput',['../structdustsim_1_1SingleParticleSimulatorInput.html',1,'dustsim::SingleParticleSimulatorInput'],['../structdustsim_1_1SingleParticleSimulatorInput.html#a0e5d85c32ba27525cf7ea6a0420d0df2',1,'dustsim::SingleParticleSimulatorInput::SingleParticleSimulatorInput()']]],
+  ['singleparticlesimulatorinput',['SingleParticleSimulatorInput',['../structdustsim_1_1SingleParticleSimulatorInput.html',1,'dustsim::SingleParticleSimulatorInput'],['../structdustsim_1_1SingleParticleSimulatorInput.html#a956f9020083d6bbc9f2a855c45f62078',1,'dustsim::SingleParticleSimulatorInput::SingleParticleSimulatorInput()']]],
   ['size',['size',['../classdustsim_1_1State.html#ab79240beba79c38486f580c16455762f',1,'dustsim::State']]],
   ['solardistance',['solarDistance',['../structdustsim_1_1SingleParticleSimulatorInput.html#aabc428a2437113169a9a8e42735cc740',1,'dustsim::SingleParticleSimulatorInput']]],
   ['solarenergyflux',['solarEnergyFlux',['../structdustsim_1_1SingleParticleSimulatorInput.html#a662b58b5af766a398f40d57b154ccf08',1,'dustsim::SingleParticleSimulatorInput']]],

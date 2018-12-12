@@ -1,6 +1,6 @@
 var structdustsim_1_1SingleParticleSimulatorInput =
 [
-    [ "SingleParticleSimulatorInput", "structdustsim_1_1SingleParticleSimulatorInput.html#a0e5d85c32ba27525cf7ea6a0420d0df2", null ],
+    [ "SingleParticleSimulatorInput", "structdustsim_1_1SingleParticleSimulatorInput.html#a956f9020083d6bbc9f2a855c45f62078", null ],
     [ "gravitationalParameter", "structdustsim_1_1SingleParticleSimulatorInput.html#ab33e5ca689356590fc223810755809c5", null ],
     [ "isJ2AccelerationModelActive", "structdustsim_1_1SingleParticleSimulatorInput.html#a58341d217a9ffaf30a319d6f853e7dbf", null ],
     [ "j2Coefficient", "structdustsim_1_1SingleParticleSimulatorInput.html#a4085ce2dedc0faaffc251eae221aed09", null ],
@@ -12,6 +12,7 @@ var structdustsim_1_1SingleParticleSimulatorInput =
     [ "solarDistance", "structdustsim_1_1SingleParticleSimulatorInput.html#aabc428a2437113169a9a8e42735cc740", null ],
     [ "solarGravitationalParameter", "structdustsim_1_1SingleParticleSimulatorInput.html#a977d0d8320dd21f543479c22a6ee812e", null ],
     [ "solarEnergyFlux", "structdustsim_1_1SingleParticleSimulatorInput.html#a662b58b5af766a398f40d57b154ccf08", null ],
+    [ "obliquity", "structdustsim_1_1SingleParticleSimulatorInput.html#a11c98786dc89238c0b075a12ee330027", null ],
     [ "initialStateKeplerianElements", "structdustsim_1_1SingleParticleSimulatorInput.html#a29b2b3c5b2316ddcdd891ed078433b95", null ],
     [ "integrator", "structdustsim_1_1SingleParticleSimulatorInput.html#a5d2e0ec4f203599e401dd23e0860b2ee", null ],
     [ "startTime", "structdustsim_1_1SingleParticleSimulatorInput.html#aae576430494255d4c6c3b993285d8c8c", null ],
@@ -21,6 +22,7 @@ var structdustsim_1_1SingleParticleSimulatorInput =
     [ "absoluteTolerance", "structdustsim_1_1SingleParticleSimulatorInput.html#ab29885c8117856d2542950df2c5709e1", null ],
     [ "minimumStepSize", "structdustsim_1_1SingleParticleSimulatorInput.html#add1c5cc1b83d61f74198f2acb4f0f581", null ],
     [ "maximumStepSize", "structdustsim_1_1SingleParticleSimulatorInput.html#abebcb18ac8cf90e7e1ac74bda015c9dc", null ],
+    [ "outputInterval", "structdustsim_1_1SingleParticleSimulatorInput.html#aed7593dda6c61c6b50455343476a01af", null ],
     [ "metadataFilePath", "structdustsim_1_1SingleParticleSimulatorInput.html#ae11542701713c2b02094c5a4d36fe581", null ],
     [ "stateHistoryFilePath", "structdustsim_1_1SingleParticleSimulatorInput.html#ae4dbacf4e5b18de29bfdb4f44b29e43a", null ]
 ];
