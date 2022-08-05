@@ -66,9 +66,6 @@ FetchContent_Declare(astro
   GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(astro)
 
-# Find SQLite3 library
-find_package(SQLite3)
-
 # Fetch SQLiteCpp library
 FetchContent_Declare(SQLiteCpp
   GIT_REPOSITORY https://github.com/SRombauts/SQLiteCpp
