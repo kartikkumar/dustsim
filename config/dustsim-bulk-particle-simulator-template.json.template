@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+// Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
 // Distributed under the MIT License.
 // See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 
@@ -22,7 +22,7 @@
     ////
 
     // Set gravitational parameter of the central body [km^3 s^-2].
-    "gravitational_parameter"               : 5.793939e6,
+    "gravitational_parameter"               : ,
 
     ////
     // J2
@@ -32,10 +32,10 @@
     "is_j2_active"                          : true,
 
     // Set J2 coefficient of spherical harmonics expansion of gravity field.
-    "j2_coefficient"                        : 0.012,
+    "j2_coefficient"                        : ,
 
     // Set equatorial radius corresponding to spherical harmonics expansion of graivty field [km].
-    "equatorial_radius"                     : 25559.0,
+    "equatorial_radius"                     : ,
 
     ////
     // Radiation pressure
@@ -45,30 +45,36 @@
     "is_radiation_pressure_active"          : true,
 
     // Set particle radius [micron].
-    "particle_radius"                       : 1.0,
+    "particle_radius"                       : ,
 
     // Set bulk density [kg m^-3].
-    "particle_bulk_density"                 : 1000.0,
+    "particle_bulk_density"                 : ,
 
     // Set radiation pressure coefficient.
-    "radiation_pressure_coefficient"        : 1.0,
+    "radiation_pressure_coefficient"        : ,
 
     // Set mean distance to the Sun [AU].
-    "mean_solar_distance"                   : 19.2,
+    "mean_solar_distance"                   : ,
+
+    // Set gravitational parameter of the Sun [km^3 s^-2].
+    "solar_gravitatational_parameter"       : ,
+
+    // Set mean solar energy flux at mean distance from the Sun [W m^-2].
+    "mean_solar_energy_flux"                : ,
 
     ////
     // Initial state
     ////
 
     // Define bounds of uniform distribution for semi-major axis.
-    "semi_major_axis_minimum"               : 96736.0,
-    "semi_major_axis_maximum"               : 98736.0,
+    "semi_major_axis_minimum"               : ,
+    "semi_major_axis_maximum"               : ,
 
     // Define Full-Width Half-Maximum for eccentricity vector components [-].
-    "eccentricity_full_width_half_maximum"  : 1.0e-3,
+    "eccentricity_full_width_half_maximum"  : ,
 
     // Define Full-Width Half-Maximum for inclination vector [rad].
-    "inclination_full_width_half_maximum"   : 1.0e-3,
+    "inclination_full_width_half_maximum"   : ,
 
     ////
     // Numerical integrator
@@ -77,30 +83,30 @@
     // Select numerical integrator.
     // (rk4|rkf45|rkf78)
     // NOTE: Currently, only the RKF7(8) integrator is included.
-    "integrator"                            : "rkf78",
+    "integrator"                            : "",
 
     // Set up integrator time parameters.
     // For fixed step size integrators, the step size is constant throughout.
     // For variable step size integrators, the step size is adapted based on the tolerances.
-    "start_time"                            : 0.0,
-    "end_time"                              : 3.15576e7,
-    "time_step"                             : 100.0,
+    "start_time"                            : ,
+    "end_time"                              : ,
+    "time_step"                             : ,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
-    "relative_tolerance"                    : 1.0e-10,
-    "absolute_tolerance"                    : 1.0e-12,
+    "relative_tolerance"                    : ,
+    "absolute_tolerance"                    : ,
 
     // Set up integrator step size bounds (only applicable for adaptive step size integrators).
-    "minimum_step_size"                     : 1.0e-10,
-    "maximum_step_size"                     : 1000.0,
+    "minimum_step_size"                     : ,
+    "maximum_step_size"                     : ,
 
     ////
     // Output
     ////
 
     // Set interval at which output is written to database.
-    "output_interval"                       : 3600.0,
+    "output_interval"                       : ,
 
     // Set up SQLite database options.
-    "database_file_path"                    : ""
+    "database_file_path"                    : "dustsim-bulk-particle-simulator-results.db3"
 }

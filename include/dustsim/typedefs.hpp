@@ -1,15 +1,12 @@
 /*
- * Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+ * Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
-#ifndef DUSTSIM_TYPEDEFS_HPP
-#define DUSTSIM_TYPEDEFS_HPP
+#pragma once
 
 #include <vector>
-
-#include <rapidjson/document.h>
 
 namespace dustsim
 {
@@ -21,10 +18,7 @@ typedef int Int;
 typedef double Real;
 
 //! Set type for n-dimensional vector.
-typedef std::vector< Real > Vector;
-
-//! JSON config iterator.
-typedef rapidjson::Value::ConstMemberIterator ConfigIterator;
+typedef std::vector<Real> Vector;
 
 //! Define numerical integrators.
 enum Integrator
@@ -35,5 +29,3 @@ enum Integrator
 };
 
 } // namespace dustsim
-
-#endif // DUSTSIM_TYPEDEFS_HPP

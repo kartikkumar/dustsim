@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+// Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
 // Distributed under the MIT License.
 // See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 {
@@ -11,7 +11,7 @@
     "simulation_results_table"      : "simulation_results",
 
     // Set semi-major axis reference [km].
-    "semi_major_axis_reference"     : 97736.0,
+    "semi_major_axis_reference"     : ,
 
     // Set directory where 2D figure is stored.
     "output_directory"              : "",
@@ -20,15 +20,15 @@
     "initial_states_figure"         : "initial_states.png",
 
     // Set filename for Keplerian elements change figures.
-    "semi_major_axis_change_figure" : "semi_major_axis_change.png",
-    "eccentricity_change_figure"    : "eccentricity_change.png",
+    "semi_major_axis_change_figure" : "semi-major-axis-change.png",
+    "eccentricity_change_figure"    : "eccentricity-change.png",
 
     // Flag that sets whether figures should be shown (Python plotting windows pop up).
     // [true|false]
     "show_figures"                  : false,
 
     // // Set radius of central body for 3D plot [km].
-    // "central_body_radius"       : 25559.0,
+    "central_body_radius"       : ,
 
     // Characteristics for figures.
     "figure_dpi"                    : 300

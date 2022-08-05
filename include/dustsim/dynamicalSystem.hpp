@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+ * Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
-#ifndef DUSTSIM_DYNAMICAL_SYSTEM_HPP
-#define DUSTSIM_DYNAMICAL_SYSTEM_HPP
+#pragma once
 
-#include <astro/astro.hpp>
+#include <astro/astroAll.hpp>
 
 #include "dustsim/state.hpp"
 #include "dustsim/typedefs.hpp"
@@ -32,38 +31,39 @@ public:
      * Constructor for dynamical system, taking model parameters to define the dynamical
      * environment.
      *
-     * @param[in] aGravitationalParameter       Gravitational parameter of central body  [km^3 s^-2]
-     * @param[in] aJ2AccelerationFlag           Flag indicating if J2 acceleration model is active
-     * @param[in] aJ2Coefficient                J2 coefficient of gravity expansion              [-]
-     * @param[in] anEquatorialRadius            Equatiorial radius for gravity expansion        [km]
-     * @param[in] aRadiationPressureFlag        Flag indicating if radiation pressure acceleration
+     * @param[in]  aGravitationalParameter      Gravitational parameter of central body  [km^3 s^-2]
+     * @param[in]  aJ2AccelerationFlag          Flag indicating if J2 acceleration model is active
+     * @param[in]  aJ2Coefficient               J2 coefficient of gravity expansion              [-]
+     * @param[in]  anEquatorialRadius           Equatiorial radius for gravity expansion        [km]
+     * @param[in]  aRadiationPressureFlag       Flag indicating if radiation pressure acceleration
      *                                          model is active
-     * @param[in] aParticleRadius               Radius of dust particle                     [micron]
-     * @param[in] aParticleBulkDensity          Bulk density of dust particle              [kg m^-3]
-     * @param[in] aRadiationPressureCoefficient Radiation pressure coefficient                   [-]
-     * @param[in] aSolarMeanMotion              Mean motion of central body around Sun    [rad s^-1]
-     * @param[in] aRadiationPressure            Radiation pressure for complete absorption  [N m^-2]
+     * @param[in]  aParticleRadius              Radius of dust particle                     [micron]
+     * @param[in]  aParticleBulkDensity         Bulk density of dust particle              [kg m^-3]
+     * @param[in]  aRadiationPressureCoefficient
+     *                                          Radiation pressure coefficient                   [-]
+     * @param[in]  aSolarMeanMotion             Mean motion of central body around Sun    [rad s^-1]
+     * @param[in]  aRadiationPressure           Radiation pressure for complete absorption  [N m^-2]
      */
-    DynamicalSystem( const Real aGravitationalParameter,
-                     const bool aJ2AccelerationFlag,
-                     const Real aJ2Coefficient,
-                     const Real anEquatorialRadius,
-                     const bool aRadiationPressureFlag,
-                     const Real aParticleRadius,
-                     const Real aParticleBulkDensity,
-                     const Real aRadiationPressureCoefficient,
-                     const Real aSolarMeanMotion,
-                     const Real aRadiationPressure )
-        : gravitationalParameter( aGravitationalParameter ),
-          isJ2AccelerationModelActive( aJ2AccelerationFlag ),
-          j2Coefficient( aJ2Coefficient ),
-          equatorialRadius( anEquatorialRadius ),
-          isRadiationPressureAccelerationModelActive( aRadiationPressureFlag ),
-          particleRadius( aParticleRadius ),
-          particleBulkDensity( aParticleBulkDensity ),
-          radiationPressureCoefficient( aRadiationPressureCoefficient ),
-          solarMeanMotion( aSolarMeanMotion ),
-          radiationPressure( aRadiationPressure )
+    DynamicalSystem(const Real aGravitationalParameter,
+                    const bool aJ2AccelerationFlag,
+                    const Real aJ2Coefficient,
+                    const Real anEquatorialRadius,
+                    const bool aRadiationPressureFlag,
+                    const Real aParticleRadius,
+                    const Real aParticleBulkDensity,
+                    const Real aRadiationPressureCoefficient,
+                    const Real aSolarMeanMotion,
+                    const Real aRadiationPressure)
+        : gravitationalParameter(aGravitationalParameter),
+          isJ2AccelerationModelActive(aJ2AccelerationFlag),
+          j2Coefficient(aJ2Coefficient),
+          equatorialRadius(anEquatorialRadius),
+          isRadiationPressureAccelerationModelActive(aRadiationPressureFlag),
+          particleRadius(aParticleRadius),
+          particleBulkDensity(aParticleBulkDensity),
+          radiationPressureCoefficient(aRadiationPressureCoefficient),
+          solarMeanMotion(aSolarMeanMotion),
+          radiationPressure(aRadiationPressure)
     { }
 
     //! Overload ()-operator to compute state derivative using dynamical system.
@@ -73,54 +73,53 @@ public:
      * This function fulfills the prototype for the numerical integrators in the openastro integrate
      * library.
      *
-     * @param[in]  time              Current simulation epoch
-     * @param[in]  state             Current state of the dynamical system (1-D vector)
-     * @return                       Computed state derivative of the dynamical system (1-D vector)
+     * @param[in]  time   Current simulation epoch
+     * @param[in]  state  Current state of the dynamical system (1-D vector)
+     * @return            Computed state derivative of the dynamical system (1-D vector)
      */
-    State operator( )( const Real time, const State& state )
+    State operator()(const Real time, const State& state)
     {
-        const State position( { state[ astro::xPositionIndex ],
-                                state[ astro::yPositionIndex ],
-                                state[ astro::zPositionIndex ] } );
+        const State position({state[astro::xPositionIndex],
+                              state[astro::yPositionIndex],
+                              state[astro::zPositionIndex]});
 
         // Compute the total acceleration acting on the system as a sum of the forces.
         // Central body gravity is included by default.
-        State acceleration( astro::computeCentralBodyAcceleration( gravitationalParameter,
-                                                                   position ) );
+        State acceleration(astro::computeCentralBodyAcceleration(gravitationalParameter, position));
 
         // Add J2 acceleration if model is set to active.
-        if ( isJ2AccelerationModelActive )
+        if (isJ2AccelerationModelActive)
         {
-            acceleration = acceleration + astro::computeJ2Acceleration( gravitationalParameter,
-                                                                        position,
-                                                                        equatorialRadius,
-                                                                        j2Coefficient );
+            acceleration = acceleration + astro::computeJ2Acceleration(gravitationalParameter,
+                                                                       position,
+                                                                       equatorialRadius,
+                                                                       j2Coefficient);
         }
 
-        // Add solar radiation pressure acceleration if model is set to active.
-        if ( isRadiationPressureAccelerationModelActive )
-        {
-            // Compute unit vector to the Sun based on elapsed time.
-            // Inclination of central body around Sun is assumed to be zero.
-            const Real elapsedOrbitAngle = solarMeanMotion * time;
-            const Vector unitVectorToSun( { std::cos( elapsedOrbitAngle ),
-                                            std::sin( elapsedOrbitAngle ),
-                                            0.0 } );
-            acceleration = acceleration
-                           + astro::computeRadiationPressureAcceleration(
-                                radiationPressure,
-                                radiationPressureCoefficient,
-                                unitVectorToSun,
-                                particleRadius,
-                                particleBulkDensity );
-        }
+        // // Add solar radiation pressure acceleration if model is set to active.
+        // if (isRadiationPressureAccelerationModelActive)
+        // {
+        //     // Compute unit vector to the Sun based on elapsed time.
+        //     // Inclination of central body around Sun is assumed to be zero.
+        //     const Real elapsedOrbitAngle = solarMeanMotion * time;
+        //     const Vector unitVectorToSun({std::cos(elapsedOrbitAngle),
+        //                                   std::sin(elapsedOrbitAngle),
+        //                                   0.0});
+        //     acceleration = acceleration
+        //                    + astro::computeCannonballRadiationPressureAcceleration(
+        //                         radiationPressure,
+        //                         radiationPressureCoefficient,
+        //                         unitVectorToSun,
+        //                         particleRadius,
+        //                         particleBulkDensity);
+        // }
 
-        return State( { state[ 3 ],
-                        state[ 4 ],
-                        state[ 5 ],
-                        acceleration[ 0 ],
-                        acceleration[ 1 ],
-                        acceleration[ 2 ] } );
+        return State({state[3],
+                      state[4],
+                      state[5],
+                      acceleration[0],
+                      acceleration[1],
+                      acceleration[2]});
     }
 
 protected:
@@ -160,5 +159,3 @@ private:
 };
 
 } // namespace dustsim
-
-#endif // DUSTSIM_DYNAMICAL_SYSTEM_HPP

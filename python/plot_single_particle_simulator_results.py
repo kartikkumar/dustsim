@@ -1,23 +1,23 @@
 '''
-Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
 Distributed under the MIT License.
 See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 '''
 
 # Set up modules and packages.
 # Plotting
-import matplotlib
-matplotlib.use('TkAgg')
+# import matplotlib
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from matplotlib import cm
-from matplotlib.font_manager import FontProperties
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d import axes3d
+# from matplotlib import rcParams
+# from matplotlib import cm
+# from matplotlib.font_manager import FontProperties
+# from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import axes3d
 
 # I/O
 import json
-import jstyleson
+from jsmin import jsmin
 from pprint import pprint
 
 # Numerical
@@ -32,7 +32,7 @@ import time
 print ("")
 print ("------------------------------------------------------------------")
 print ("                             dustsim                              ")
-print ("      Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)      ")
+print ("      Copyright (c) 2009-2022, K. Kumar (me@kartikkumar.com)      ")
 print ("------------------------------------------------------------------")
 print ("")
 
@@ -52,9 +52,8 @@ if len(sys.argv) != 2:
 
 json_input_file = open(sys.argv[1])
 with open(sys.argv[1], 'r') as json_input_file:
-  json_input_string = json_input_file.read()
-config = jstyleson.loads(json_input_string)
-jstyleson.dumps(config)
+  json_input_string = jsmin(json_input_file.read())
+config  = json.loads(json_input_string)
 pprint(config)
 
 print ("")
@@ -121,12 +120,12 @@ ax3.grid()
 ax4.axis('off')
 the_table = ax4.table(cellText=metadata_table,colLabels=None,cellLoc='center',loc='center')
 table_props = the_table.properties()
-table_cells = table_props['child_artists']
-for cell in table_cells:
-    cell.set_height(0.15)
-cell_dict = the_table.get_celld()
-for row in range(0,len(metadata_table)):
-    cell_dict[(row,2)].set_width(0.1)
+# table_cells = table_props['child_artists']
+# for cell in table_cells:
+#     cell.set_height(0.15)
+# cell_dict = the_table.get_celld()
+# for row in range(0,len(metadata_table)):
+#     cell_dict[(row,2)].set_width(0.1)
 
 # Save figure.
 plt.tight_layout()
@@ -190,7 +189,7 @@ plt.savefig(output_path_prefix + config["kepler_figure"], dpi=config["figure_dpi
 # Generate 3D figure if requested.
 if config["show_3D_figure"]:
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = plt.axes(projection="3d")
     ax.set_xlabel('x [km]')
     ax.set_ylabel('y [km]')
     ax.set_zlabel('z [km]')

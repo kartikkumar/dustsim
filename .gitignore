@@ -35,6 +35,7 @@ doxydocs
 temp
 debug
 external
+.python-version
 
 # Project files
 *.sublime*

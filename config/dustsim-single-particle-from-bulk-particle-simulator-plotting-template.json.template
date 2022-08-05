@@ -1,9 +1,9 @@
-// Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+// Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
 // Distributed under the MIT License.
 // See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 {
     // Set path to database.
-    "database"                      : "/Users/kartikkumar/Desktop/dustsim_results/mu_ring_1_thread_100_particles_1000_years/mu_ring_1_thread_100_particles_1000_years.db",
+    "database"                      : "dustsim-single-particle-simulator-results.db3",
 
     // Set simulation ID to retrieve from database.
     "simulation_id"                 : 1,
@@ -14,24 +14,24 @@
     "simulation_results_table"      : "simulation_results",
 
     // Set semi-major axis reference [km].
-    "semi_major_axis_reference"     : 97736.0,
+    "semi_major_axis_reference"     : ,
 
     // Set directory where 2D figure is stored.
     "output_directory"              : "",
 
     // Set filename for initial states figure.
-    "initial_states_figure"         : "/Users/kartikkumar/Desktop/initial_states.png",
+    "initial_states_figure"         : "initial-states.png",
 
     // Set filename for Keplerian elements change figures.
-    "semi_major_axis_change_figure" : "/Users/kartikkumar/Desktop/semi_major_axis_change.png",
-    "eccentricity_change_figure"    : "/Users/kartikkumar/Desktop/eccentricity_change.png",
+    "semi_major_axis_change_figure" : "semi-major-axis-change.png",
+    "eccentricity_change_figure"    : "eccentricity-change.png",
 
     // Flag that sets whether figures should be shown (Python plotting windows pop up).
     // [true|false]
     "show_figures"                  : false,
 
     // // Set radius of central body for 3D plot [km].
-    // "central_body_radius"       : 25559.0,
+    // "central_body_radius"       : ,
 
     // Characteristics for figures.
     "figure_dpi"                    : 300

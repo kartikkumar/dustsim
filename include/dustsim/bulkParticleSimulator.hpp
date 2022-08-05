@@ -1,15 +1,14 @@
 /*
- * Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+ * Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
-#ifndef DUSTSIM_BULK_PARTICLE_SIMULATOR_HPP
-#define DUSTSIM_BULK_PARTICLE_SIMULATOR_HPP
+#pragma once
 
 #include <string>
 
-#include <rapidjson/document.h>
+#include <nlohmann/json.hpp>
 
 #include "dustsim/typedefs.hpp"
 
@@ -23,9 +22,9 @@ namespace dustsim
  * This function is called when the user specifies the application mode to be
  * "bulk_particle_simulator".
  *
- * @param[in] config User-defined configuration options (extracted from JSON input file)
+ * @param[in]  config  User-defined configuration options (extracted from JSON input file)
  */
-void executeBulkParticleSimulator( const rapidjson::Document& config );
+void executeBulkParticleSimulator(const nlohmann::json& config);
 
 //! Input for bulk_particle_simulator application mode.
 /*!
@@ -43,83 +42,95 @@ public:
      * Constructs data struct based on verified input parameters.
      *
      * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
-     * @param[in] aNumberOfThreads            Number of parallel threads
-     * @param[in] aNumberOfParticles          Number of dust particles to simulate
-     * @param[in] aGravitationalParameter     Gravitational parameter of central body    [km^3 s^-2]
-     * @param[in] aJ2AccelerationFlag         Flag indicating if J2 acceleration model is active
-     * @param[in] aJ2Coefficient              J2 coefficient of gravity expansion                [-]
-     * @param[in] anEquatorialRadius          Equatiorial radius for gravity expansion          [km]
-     * @param[in] aRadiationPressureFlag      Flag indicating if radiation pressure acceleration
-     *                                        model is active
-     * @param[in] aParticleRadius             Radius of dust particle                       [micron]
-     * @param[in] aParticleBulkDensity        Bulk density of dust particle                [kg m^-3]
-     * @param[in] aRadiationPressureCoefficient
-     *                                        Radiation pressure coefficient                     [-]
-     * @param[in] aSemiMajorAxisMinimum       Minimum semi-major axis for uniform distribution  [km]
-     * @param[in] aSemiMajorAxisMaximum       Maximum semi-major axis for uniform distribution  [km]
-     * @param[in] anEccentricityFWHM          Full-Width Half-Maximum for normal distribution of
-                                              eccentricity vector components                     [-]
-     * @param[in] anInclinationFWHM           Full-Width Half-Maximum for normal distribution of
-                                              inclination vector components                    [rad]
-     * @param[in] anIntegrator                Name of selected numerical integrator
-     * @param[in] aStartTime                  Start time for integration                         [s]
-     * @param[in] aTimeStep                   Time step for numerical integrator                 [s]
-     * @param[in] anEndTime                   End time for integration                           [s]
-     * @param[in] aRelativeTolerance          Relative tolerance for integrator                  [-]
-     * @param[in] anAbsoluteTolerance         Absolute tolerance for integrator                  [-]
-     * @param[in] aMinimumStepSize            Minimum allowable step size for integrator         [s]
-     * @param[in] aMaximumStepSize            Maximum allowable step size for integrator         [s]
-     * @param[in] anOutputInterval            Interval at which output is written to database    [s]
-     * @param[in] aDatabaseFilePath           Path to SQLite database for simulation results
+     * @param[in]  aNumberOfThreads             Number of parallel threads
+     * @param[in]  aNumberOfParticles           Number of dust particles to simulate
+     * @param[in]  aGravitationalParameter      Gravitational parameter of central body  [km^3 s^-2]
+     * @param[in]  aJ2AccelerationFlag          Flag indicating if J2 acceleration model is active
+     * @param[in]  aJ2Coefficient               J2 coefficient of gravity expansion              [-]
+     * @param[in]  anEquatorialRadius           Equatiorial radius for gravity expansion         km]
+     * @param[in]  aRadiationPressureFlag       Flag indicating if radiation pressure acceleration
+     *                                          model is active
+     * @param[in]  aParticleRadius              Radius of dust particle                     [micron]
+     * @param[in]  aParticleBulkDensity         Bulk density of dust particle              [kg m^-3]
+     * @param[in]  aRadiationPressureCoefficient
+     *                                          Radiation pressure coefficient                   [-]
+     * @param[in]  aSolarDistance               Average distance of central body from the Sun   [AU]
+     * @param[in]  aSolarGravitationalParameter
+     *                                          Gravitational parameter of the Sun       [km^3 s^-2]
+     * @param[in]  aSolarEnergyFlux             Average energy flux at solar distance       [W m^-2]
+     * @param[in]  aSemiMajorAxisMinimum        Minimum semi-major axis for uniform
+     *                                          distribution                                    [km]
+     * @param[in]  aSemiMajorAxisMaximum        Maximum semi-major axis for uniform
+     *                                          distribution                                    [km]
+     * @param[in]  anEccentricityFWHM           Full-Width Half-Maximum for normal distribution of
+                                                eccentricity vector components                   [-]
+     * @param[in]  anInclinationFWHM            Full-Width Half-Maximum for normal distribution of
+                                                inclination vector components                  [rad]
+     * @param[in]  anIntegrator                 Name of selected numerical integrator
+     * @param[in]  aStartTime                   Start time for integration                       [s]
+     * @param[in]  aTimeStep                    Time step for numerical integrator               [s]
+     * @param[in]  anEndTime                    End time for integration                         [s]
+     * @param[in]  aRelativeTolerance           Relative tolerance for integrator                [-]
+     * @param[in]  anAbsoluteTolerance          Absolute tolerance for integrator                [-]
+     * @param[in]  aMinimumStepSize             Minimum allowable step size for integrator       [s]
+     * @param[in]  aMaximumStepSize             Maximum allowable step size for integrator       [s]
+     * @param[in]  anOutputInterval             Interval at which output is written to database  [s]
+     * @param[in]  aDatabaseFilePath            Path to SQLite database for simulation results
      */
-    BulkParticleSimulatorInput( const Real            aNumberOfThreads,
-                                const Real            aNumberOfParticles,
-                                const Real            aGravitationalParameter,
-                                const bool            aJ2AccelerationFlag,
-                                const Real            aJ2Coefficient,
-                                const Real            anEquatorialRadius,
-                                const bool            aRadiationPressureFlag,
-                                const Real            aParticleRadius,
-                                const Real            aParticleBulkDensity,
-                                const Real            aRadiationPressureCoefficient,
-                                const Real            aSemiMajorAxisMinimum,
-                                const Real            aSemiMajorAxisMaximum,
-                                const Real            anEccentricityFWHM,
-                                const Real            anInclinationFWHM,
-                                const Integrator      anIntegrator,
-                                const Real            aStartTime,
-                                const Real            aTimeStep,
-                                const Real            anEndTime,
-                                const Real            aRelativeTolerance,
-                                const Real            anAbsoluteTolerance,
-                                const Real            aMinimumStepSize,
-                                const Real            aMaximumStepSize,
-                                const Real            anOutputInterval,
-                                const std::string&    aDatabaseFilePath )
-        : numberOfThreads( aNumberOfThreads ),
-          numberOfParticles( aNumberOfParticles ),
-          gravitationalParameter( aGravitationalParameter ),
-          isJ2AccelerationModelActive( aJ2AccelerationFlag ),
-          j2Coefficient( aJ2Coefficient ),
-          equatorialRadius( anEquatorialRadius ),
-          isRadiationPressureAccelerationModelActive( aRadiationPressureFlag ),
-          particleRadius( aParticleRadius ),
-          particleBulkDensity( aParticleBulkDensity ),
-          radiationPressureCoefficient( aRadiationPressureCoefficient ),
-          semiMajorAxisMinimum( aSemiMajorAxisMinimum ),
-          semiMajorAxisMaximum( aSemiMajorAxisMaximum ),
-          eccentricityFullWidthHalfMaximum( anEccentricityFWHM ),
-          inclinationFullWidthHalfMaximum( anInclinationFWHM ),
-          integrator( anIntegrator ),
-          startTime( aStartTime ),
-          timeStep( aTimeStep ),
-          endTime( anEndTime ),
-          relativeTolerance( aRelativeTolerance ),
-          absoluteTolerance( anAbsoluteTolerance ),
-          minimumStepSize( aMinimumStepSize ),
-          maximumStepSize( aMaximumStepSize ),
-          outputInterval( anOutputInterval ),
-          databaseFilePath( aDatabaseFilePath )
+    BulkParticleSimulatorInput(const Real            aNumberOfThreads,
+                               const Real            aNumberOfParticles,
+                               const Real            aGravitationalParameter,
+                               const bool            aJ2AccelerationFlag,
+                               const Real            aJ2Coefficient,
+                               const Real            anEquatorialRadius,
+                               const bool            aRadiationPressureFlag,
+                               const Real            aParticleRadius,
+                               const Real            aParticleBulkDensity,
+                               const Real            aRadiationPressureCoefficient,
+                               const Real            aSolarDistance,
+                               const Real            aSolarGravitationalParameter,
+                               const Real            aSolarEnergyFlux,
+                               const Real            aSemiMajorAxisMinimum,
+                               const Real            aSemiMajorAxisMaximum,
+                               const Real            anEccentricityFWHM,
+                               const Real            anInclinationFWHM,
+                               const Integrator      anIntegrator,
+                               const Real            aStartTime,
+                               const Real            aTimeStep,
+                               const Real            anEndTime,
+                               const Real            aRelativeTolerance,
+                               const Real            anAbsoluteTolerance,
+                               const Real            aMinimumStepSize,
+                               const Real            aMaximumStepSize,
+                               const Real            anOutputInterval,
+                               const std::string&    aDatabaseFilePath)
+        : numberOfThreads(aNumberOfThreads ),
+          numberOfParticles(aNumberOfParticles ),
+          gravitationalParameter(aGravitationalParameter ),
+          isJ2AccelerationModelActive(aJ2AccelerationFlag),
+          j2Coefficient(aJ2Coefficient ),
+          equatorialRadius(anEquatorialRadius ),
+          isRadiationPressureAccelerationModelActive(aRadiationPressureFlag),
+          particleRadius(aParticleRadius ),
+          particleBulkDensity(aParticleBulkDensity ),
+          radiationPressureCoefficient(aRadiationPressureCoefficient ),
+          solarDistance(aSolarDistance),
+          solarGravitationalParameter(aSolarGravitationalParameter),
+          solarEnergyFlux(aSolarEnergyFlux),
+          semiMajorAxisMinimum(aSemiMajorAxisMinimum ),
+          semiMajorAxisMaximum(aSemiMajorAxisMaximum ),
+          eccentricityFullWidthHalfMaximum(anEccentricityFWHM ),
+          inclinationFullWidthHalfMaximum(anInclinationFWHM ),
+          integrator(anIntegrator ),
+          startTime(aStartTime ),
+          timeStep(aTimeStep ),
+          endTime(anEndTime ),
+          relativeTolerance(aRelativeTolerance ),
+          absoluteTolerance(anAbsoluteTolerance ),
+          minimumStepSize(aMinimumStepSize ),
+          maximumStepSize(aMaximumStepSize ),
+          outputInterval(anOutputInterval ),
+          databaseFilePath(aDatabaseFilePath )
     { }
 
     //! Number of threads to parallelize simulations using OpenMP.
@@ -152,6 +163,15 @@ public:
 
     //! Radiation pressure coefficient [-].
     const Real radiationPressureCoefficient;
+
+    //! Mean solar distance [AU].
+    const Real solarDistance;
+
+    //! Solar gravitational parameter [km^3 s^-2].
+    const Real solarGravitationalParameter;
+
+    //! Mean solar energy flux [W m^-2].
+    const Real solarEnergyFlux;
 
     //! Minimum semi-major axis corresponding to upper limit of uniform distribution [km].
     const Real semiMajorAxisMinimum;
@@ -209,12 +229,10 @@ private:
  * containing all the inputs is returned.
  *
  * @sa executeBulkParticleSimulator, BulkParticleSimulatorInput
- * @param[in] config User-defined configuration options (extracted from JSON input file)
- * @return           Struct containing all valid input for bulk_particle_simulator application
- *                   mode
+ * @param[in]  config  User-defined configuration options (extracted from JSON input file)
+ * @return             Struct containing all valid input for bulk_particle_simulator
+ *                     application mode
  */
-BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Document& config );
+BulkParticleSimulatorInput checkBulkParticleSimulatorInput(const nlohmann::json& config);
 
 } // namespace dustsim
-
-#endif // DUSTSIM_BULK_PARTICLE_SIMULATOR_HPP

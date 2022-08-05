@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+ * Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
 
-#include <iomanip>
+// #include <iomanip>
 #include <iostream>
-#include <iterator>
+// #include <iterator>
 #include <cmath>
 #include <limits>
 #include <map>
@@ -14,32 +14,33 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
-#include <omp.h>
+// #include <omp.h>
 
-#include <keplerian_toolbox.h>
+#include <nlohmann/json.hpp>
+
+// #include <keplerian_toolbox.h>
 
 #include <SQLiteCpp/SQLiteCpp.h>
 
-#include <astro/astro.hpp>
+#include <astro/astroAll.hpp>
 
-#include <sml/sml.hpp>
+#include <sml/smlAll.hpp>
 
-#include <integrate/integrate.hpp>
+#include <integrate/integrateAll.hpp>
 
 #include "dustsim/bulkParticleSimulator.hpp"
 #include "dustsim/dynamicalSystem.hpp"
-#include "dustsim/tools.hpp"
+// #include "dustsim/tools.hpp"
 
 namespace dustsim
 {
 
 //! Execute bulk particle simulator.
-void executeBulkParticleSimulator( const rapidjson::Document& config )
+void executeBulkParticleSimulator(const nlohmann::json& config)
 {
     // Verify config parameters. Exception is thrown if any of the parameters are missing.
-    const BulkParticleSimulatorInput input = checkBulkParticleSimulatorInput( config );
+    const BulkParticleSimulatorInput input = checkBulkParticleSimulatorInput(config);
 
     std::cout << std::endl;
     std::cout << "******************************************************************" << std::endl;
@@ -47,16 +48,26 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     std::cout << "******************************************************************" << std::endl;
     std::cout << std::endl;
 
+    // Compute mean motion of central body around the Sun [rad/s].
+    const Real solarMeanMotion = astro::computeKeplerMeanMotion(
+        input.solarDistance * astro::ASTRO_AU_IN_KM, input.solarGravitationalParameter);
+
+    // Compute radiation pressure for complete absorption at distance of central body from the
+    // Sun [N m^-2].
+    const Real radiationPressure = astro::computeAbsorptionRadiationPressure(input.solarEnergyFlux);
+
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
-    DynamicalSystem dynamics( input.gravitationalParameter,
-                              input.isJ2AccelerationModelActive,
-                              input.j2Coefficient,
-                              input.equatorialRadius,
-                              input.isRadiationPressureAccelerationModelActive,
-                              input.particleRadius,
-                              input.particleBulkDensity,
-                              input.radiationPressureCoefficient );
+    DynamicalSystem dynamics(input.gravitationalParameter,
+                             input.isJ2AccelerationModelActive,
+                             input.j2Coefficient,
+                             input.equatorialRadius,
+                             input.isRadiationPressureAccelerationModelActive,
+                             input.particleRadius,
+                             input.particleBulkDensity,
+                             input.radiationPressureCoefficient,
+                             solarMeanMotion,
+                             radiationPressure);
     std::cout << "Dynamical model set up successfully!" << std::endl;
     std::cout << std::endl;
 
@@ -64,34 +75,34 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     // Initialize random seed.
     std::random_device randomNumberSeed;
-    std::mt19937 randomNumberGenerator( randomNumberSeed( ) );
+    std::mt19937 randomNumberGenerator(randomNumberSeed());
 
     // Set up generators for initial states for dust particles.
     // Semi-major axis values are generated from a uniform distribution, with minimum and maximum
     // set in the config file.
-    std::uniform_real_distribution< Real > semiMajorAxisGenerator( input.semiMajorAxisMinimum,
-                                                                   input.semiMajorAxisMaximum );
+    std::uniform_real_distribution<Real> semiMajorAxisGenerator(input.semiMajorAxisMinimum,
+                                                                input.semiMajorAxisMaximum);
 
     // Eccentricity & argument of periapses values are generated from normal distributions for the
-    // components of the eccentricity vector [h_e = e*cos( AoP ), k_e = e*sin( AoP )].
+    // components of the eccentricity vector [h_e = e*cos(AoP), k_e = e*sin(AoP)].
     const Real eccentricityStandardDeviation
-        = input.eccentricityFullWidthHalfMaximum / ( 2.0 * std::sqrt( 2.0 * std::log( 2.0 ) ) );
+        = input.eccentricityFullWidthHalfMaximum / (2.0 * std::sqrt(2.0 * std::log(2.0)));
     std::cout << "Eccentricity standard deviation    " << eccentricityStandardDeviation
               << " [-]" << std::endl;
-    std::normal_distribution< Real > eccentricityComponentGenerator(
-        0.0, eccentricityStandardDeviation );
+    std::normal_distribution<Real> eccentricityComponentGenerator(
+        0.0, eccentricityStandardDeviation);
 
     // Inclination & longitude of ascending node values are generated from normal distributions for
-    // the components of the inclination vector [h_i = i*cos( RAAN ), k_i = i*sin( RAAN ) ].
+    // the components of the inclination vector [h_i = i*cos(RAAN), k_i = i*sin(RAAN) ].
     const Real inclinationStandardDeviation
-        = input.inclinationFullWidthHalfMaximum / ( 2.0 * std::sqrt( 2.0 * std::log( 2.0 ) ) );
+        = input.inclinationFullWidthHalfMaximum / (2.0 * std::sqrt(2.0 * std::log(2.0)));
     std::cout << "Inclination standard deviation     " << inclinationStandardDeviation
               << " [rad]" << std::endl;
-    std::normal_distribution< Real > inclinationComponentGenerator(
-        0.0, inclinationStandardDeviation );
+    std::normal_distribution<Real> inclinationComponentGenerator(
+        0.0, inclinationStandardDeviation);
 
     // Mean anomaly values are generated from a uniform distribution.
-    std::uniform_real_distribution< Real > meanAnomalyGenerator( 0.0, 2.0 * sml::SML_PI );
+    std::uniform_real_distribution<Real> meanAnomalyGenerator(0.0, 2.0 * sml::SML_PI);
 
     std::cout << "Random number generators set up successfully!" << std::endl;
     std::cout << std::endl;
@@ -99,7 +110,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     std::cout << "Setting up database ..." << std::endl;
 
     // Open database in read/write mode.
-    SQLite::Database database( input.databaseFilePath, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE );
+    SQLite::Database database(input.databaseFilePath, SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
 
     // Set names of tables in database.
     std::string metadataTableName = "metadata";
@@ -110,7 +121,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
 
     std::ostringstream metadataDropTable;
     metadataDropTable << "DROP TABLE IF EXISTS " << metadataTableName << ";";
-    database.exec( metadataDropTable.str( ) );
+    database.exec(metadataDropTable.str());
 
     // Create metadata table.
     std::ostringstream metadataTableCreate;
@@ -120,6 +131,11 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "\"gravitational_parameter\" REAL NOT NULL,"
         << "\"j2_coefficient\" REAL NOT NULL,"
         << "\"equatorial_radius\" REAL NOT NULL,"
+        << "\"particle_radius\" REAL NOT NULL,"
+        << "\"particle_bulk_density\" REAL NOT NULL,"
+        << "\"radiation_pressure_coefficient\" REAL NOT NULL,"
+        << "\"solar_mean_motion\" REAL NOT NULL,"
+        << "\"radiation_pressure\" REAL NOT NULL,"
         << "\"semi_major_axis_minimum\" REAL NOT NULL,"
         << "\"semi_major_axis_maximum\" REAL NOT NULL,"
         << "\"eccentricity_full_width_half_maximum\" REAL NOT NULL,"
@@ -133,13 +149,13 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "\"minimum_step_size\" REAL NOT NULL,"
         << "\"maximum_step_size\" REAL NOT NULL);";
 
-    database.exec( metadataTableCreate.str( ) );
+    database.exec(metadataTableCreate.str());
 
     std::cout << "Creating table '" << initialStatesTableName << "' ..." << std::endl;
 
     std::ostringstream initialStatesDropTable;
     initialStatesDropTable << "DROP TABLE IF EXISTS " << initialStatesTableName << ";";
-    database.exec( initialStatesDropTable.str( ) );
+    database.exec(initialStatesDropTable.str());
 
     // Create initial states table.
     std::ostringstream initialStatesTableCreate;
@@ -154,13 +170,13 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "\"longitude_of_ascending_node\" REAL NOT NULL,"
         << "\"true_anomaly\" REAL NOT NULL);";
 
-    database.exec( initialStatesTableCreate.str( ) );
+    database.exec(initialStatesTableCreate.str());
 
     std::cout << "Creating table '" << simulationResultsTableName << "' ..." << std::endl;
 
     std::ostringstream simulationResultsDropTable;
     simulationResultsDropTable << "DROP TABLE IF EXISTS " << simulationResultsTableName << ";";
-    database.exec( simulationResultsDropTable.str( ) );
+    database.exec(simulationResultsDropTable.str());
 
     // Create simulation results table.
     std::ostringstream simulationResultsTableCreate;
@@ -185,7 +201,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "\"y_unit_position_sun\" REAL NOT NULL,"
         << "\"z_unit_position_sun\" REAL NOT NULL);";
 
-    database.exec( simulationResultsTableCreate.str( ) );
+    database.exec(simulationResultsTableCreate.str());
 
     std::cout << "Database set up successfully!" << std::endl;
     std::cout << std::endl;
@@ -197,10 +213,15 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << "INSERT INTO '" << metadataTableName << "' VALUES ("
         << "NULL,";
     metadataInsertString
-        << std::setprecision( std::numeric_limits< double >::digits10 )
+        << std::setprecision(std::numeric_limits<double>::digits10)
         << input.gravitationalParameter << ","
         << input.j2Coefficient << ","
         << input.equatorialRadius << ","
+        << input.particleRadius << ","
+        << input.particleBulkDensity << ","
+        << input.radiationPressureCoefficient << ","
+        << solarMeanMotion << ","
+        << radiationPressure << ","
         << input.semiMajorAxisMinimum << ","
         << input.semiMajorAxisMaximum << ","
         << input.eccentricityFullWidthHalfMaximum << ","
@@ -208,7 +229,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
     metadataInsertString
         << input.integrator << ",";
     metadataInsertString
-        << std::setprecision( std::numeric_limits< double >::digits10 )
+        << std::setprecision(std::numeric_limits<double>::digits10)
         << input.startTime << ","
         << input.timeStep << ","
         << input.endTime << ","
@@ -218,7 +239,7 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << input.maximumStepSize
         << ");";
 
-    database.exec( metadataInsertString.str( ) );
+    database.exec(metadataInsertString.str());
 
     std::cout << "Populating initial states table ..." << std::endl;
 
@@ -235,331 +256,339 @@ void executeBulkParticleSimulator( const rapidjson::Document& config )
         << ":true_anomaly"
         << ");";
 
-    SQLite::Statement initialStatesInsertQuery( database, initialStatesInsertString.str( ) );
+    SQLite::Statement initialStatesInsertQuery(database, initialStatesInsertString.str());
 
     // Set up database transaction.
-    SQLite::Transaction initialStatesInsertTransaction( database );
+    SQLite::Transaction initialStatesInsertTransaction(database);
 
     // Create storage container to store initial states (Keplerian elements) generated.
-    typedef std::map< Int, State > IntialStates;
+    typedef std::map<Int,State> IntialStates;
     IntialStates initialStatesInKeplerianElements;
 
-    for ( int i = 0; i < input.numberOfParticles ; ++i )
+    for (int i = 0; i < input.numberOfParticles ; ++i)
     {
         // Store simulation id.
         const Real simulationId = i+1;
 
         // Generate random semi-major axis [km].
-        const Real semiMajorAxis = semiMajorAxisGenerator( randomNumberGenerator );
+        const Real semiMajorAxis = semiMajorAxisGenerator(randomNumberGenerator);
 
         // Generate random eccentricity vector components.
-        const Real eccentricityXComponent = eccentricityComponentGenerator( randomNumberGenerator );
-        const Real eccentricityYComponent = eccentricityComponentGenerator( randomNumberGenerator );
+        const Real eccentricityXComponent = eccentricityComponentGenerator(randomNumberGenerator);
+        const Real eccentricityYComponent = eccentricityComponentGenerator(randomNumberGenerator);
 
         // Compute eccentricity [-] and argument of periapsis [rad].
-        const Real eccentricity = std::sqrt( eccentricityXComponent * eccentricityXComponent
-                                             + eccentricityYComponent * eccentricityYComponent );
+        const Real eccentricity = std::sqrt(eccentricityXComponent * eccentricityXComponent
+                                            + eccentricityYComponent * eccentricityYComponent);
 
         const Real argumentOfPeriapsis
-            = std::atan2( eccentricityYComponent, eccentricityXComponent );
+            = std::atan2(eccentricityYComponent, eccentricityXComponent);
 
         // Generate random inclination vector components.
-        const Real inclinationXComponent = inclinationComponentGenerator( randomNumberGenerator );
-        const Real inclinationYComponent = inclinationComponentGenerator( randomNumberGenerator );
+        const Real inclinationXComponent = inclinationComponentGenerator(randomNumberGenerator);
+        const Real inclinationYComponent = inclinationComponentGenerator(randomNumberGenerator);
 
         // Compute inclination [rad] and longitude of ascending node [rad].
-        const Real inclination = std::sqrt( inclinationXComponent * inclinationXComponent
-                                             + inclinationYComponent * inclinationYComponent );
+        const Real inclination = std::sqrt(inclinationXComponent * inclinationXComponent
+                                           + inclinationYComponent * inclinationYComponent);
 
         const Real longitudeOfAscendingNode
-            = std::atan2( inclinationYComponent, inclinationXComponent );
+            = std::atan2(inclinationYComponent, inclinationXComponent);
 
         // Generate mean anomaly [rad].
-        const Real meanAnomaly = meanAnomalyGenerator( randomNumberGenerator );
+        const Real meanAnomaly = meanAnomalyGenerator(randomNumberGenerator);
 
         // Compute true anomaly from mean anomaly [rad].
-        // @TODO: replace mean-to-eccentric anomaly conversion with implementation in
-        // openastro/astro.
-        const Real eccentricAnomaly = kep_toolbox::m2e( meanAnomaly, eccentricity );
-        const Real trueAnomaly
-            = astro::convertEccentricAnomalyToTrueAnomaly( eccentricAnomaly, eccentricity );
+        const Real eccentricAnomaly
+            = astro::convertEllipticalMeanAnomalyToEccentricAnomaly(eccentricity, meanAnomaly);
+//         const Real trueAnomaly
+//             = astro::convertEccentricAnomalyToTrueAnomaly(eccentricAnomaly, eccentricity);
 
-        // Store initial state in container.
-        initialStatesInKeplerianElements.insert( { simulationId, State( { semiMajorAxis,
-                                                                          eccentricity,
-                                                                          inclination,
-                                                                          argumentOfPeriapsis,
-                                                                          longitudeOfAscendingNode,
-                                                                          trueAnomaly } )  } );
+//         // Store initial state in container.
+//         initialStatesInKeplerianElements.insert({ simulationId, State({ semiMajorAxis,
+//                                                                           eccentricity,
+//                                                                           inclination,
+//                                                                           argumentOfPeriapsis,
+//                                                                           longitudeOfAscendingNode,
+//                                                                           trueAnomaly })  });
 
-        // Bind initial state values to database insert query.
-        initialStatesInsertQuery.bind( ":simulation_id",               simulationId );
-        initialStatesInsertQuery.bind( ":is_simulated",                0 );
-        initialStatesInsertQuery.bind( ":semi_major_axis",             semiMajorAxis );
-        initialStatesInsertQuery.bind( ":eccentricity",                eccentricity );
-        initialStatesInsertQuery.bind( ":inclination",                 inclination );
-        initialStatesInsertQuery.bind( ":argument_of_periapsis",       argumentOfPeriapsis );
-        initialStatesInsertQuery.bind( ":longitude_of_ascending_node", longitudeOfAscendingNode );
-        initialStatesInsertQuery.bind( ":true_anomaly",                trueAnomaly );
+//         // Bind initial state values to database insert query.
+//         initialStatesInsertQuery.bind(":simulation_id",               simulationId);
+//         initialStatesInsertQuery.bind(":is_simulated",                0);
+//         initialStatesInsertQuery.bind(":semi_major_axis",             semiMajorAxis);
+//         initialStatesInsertQuery.bind(":eccentricity",                eccentricity);
+//         initialStatesInsertQuery.bind(":inclination",                 inclination);
+//         initialStatesInsertQuery.bind(":argument_of_periapsis",       argumentOfPeriapsis);
+//         initialStatesInsertQuery.bind(":longitude_of_ascending_node", longitudeOfAscendingNode);
+//         initialStatesInsertQuery.bind(":true_anomaly",                trueAnomaly);
 
-        // Execute insert query.
-        initialStatesInsertQuery.executeStep( );
+//         // Execute insert query.
+//         initialStatesInsertQuery.executeStep();
 
-        // Reset SQL insert query.
-        initialStatesInsertQuery.reset( );
+//         // Reset SQL insert query.
+//         initialStatesInsertQuery.reset();
     }
 
-    // Commit transaction.
-    initialStatesInsertTransaction.commit( );
+//     // Commit transaction.
+//     initialStatesInsertTransaction.commit();
 
-    std::cout << "Initial states table populated successfully!" << std::endl;
-    std::cout << std::endl;
+//     std::cout << "Initial states table populated successfully!" << std::endl;
+//     std::cout << std::endl;
 
-    std::cout << "Running simulations ..." << std::endl;
+//     std::cout << "Running simulations ..." << std::endl;
 
-    std::ostringstream simulationResultsInsertString;
-    simulationResultsInsertString
-        << "INSERT INTO '" << simulationResultsTableName << "' VALUES ("
-        << "NULL,"
-        << ":simulation_id,"
-        << ":time,"
-        << ":semi_major_axis,"
-        << ":eccentricity,"
-        << ":inclination,"
-        << ":argument_of_periapsis,"
-        << ":longitude_of_ascending_node,"
-        << ":true_anomaly,"
-        << ":x_position,"
-        << ":y_position,"
-        << ":z_position,"
-        << ":x_velocity,"
-        << ":y_velocity,"
-        << ":z_velocity,"
-        << ":x_unit_position_sun,"
-        << ":y_unit_position_sun,"
-        << ":z_unit_position_sun"
-        << ");";
+//     std::ostringstream simulationResultsInsertString;
+//     simulationResultsInsertString
+//         << "INSERT INTO '" << simulationResultsTableName << "' VALUES ("
+//         << "NULL,"
+//         << ":simulation_id,"
+//         << ":time,"
+//         << ":semi_major_axis,"
+//         << ":eccentricity,"
+//         << ":inclination,"
+//         << ":argument_of_periapsis,"
+//         << ":longitude_of_ascending_node,"
+//         << ":true_anomaly,"
+//         << ":x_position,"
+//         << ":y_position,"
+//         << ":z_position,"
+//         << ":x_velocity,"
+//         << ":y_velocity,"
+//         << ":z_velocity,"
+//         << ":x_unit_position_sun,"
+//         << ":y_unit_position_sun,"
+//         << ":z_unit_position_sun"
+//         << ");";
 
-    SQLite::Statement simulationResultsInsertQuery(
-        database, simulationResultsInsertString.str( ) );
+//     SQLite::Statement simulationResultsInsertQuery(
+//         database, simulationResultsInsertString.str());
 
-    // Set up database transaction.
-    SQLite::Transaction simulationResultsInsertTransaction( database );
+//     // Set up database transaction.
+//     SQLite::Transaction simulationResultsInsertTransaction(database);
 
-    // Set up query to update completed states in initial states table once simulation has been run.
-    std::ostringstream initialStatesUpdateString;
-    initialStatesUpdateString << "UPDATE " << initialStatesTableName
-                              << " SET \"is_simulated\" = 1 WHERE simulation_id = :simulation_id;";
+//     // Set up query to update completed states in initial states table once simulation has been run.
+//     std::ostringstream initialStatesUpdateString;
+//     initialStatesUpdateString << "UPDATE " << initialStatesTableName
+//                               << " SET \"is_simulated\" = 1 WHERE simulation_id = :simulation_id;";
 
-    // Set up database query.
-    SQLite::Statement initialStatesUpdateQuery( database, initialStatesUpdateString.str( ) );
+//     // Set up database query.
+//     SQLite::Statement initialStatesUpdateQuery(database, initialStatesUpdateString.str());
 
-#pragma omp parallel for schedule( dynamic ) num_threads( input.numberOfThreads )
-    // Loop through the table retrieved from the database, step-by-step and execute simulations.
-    // OpenMP support for range-based for loops is not well-established, so using integer loop
-    // instead.
-    for ( unsigned int j = 0; j < initialStatesInKeplerianElements.size( ); ++j )
-    {
-        IntialStates::iterator iterator = initialStatesInKeplerianElements.begin( );
-        std::advance( iterator, j );
+// #pragma omp parallel for schedule(dynamic) num_threads(input.numberOfThreads)
+//     // Loop through the table retrieved from the database, step-by-step and execute simulations.
+//     // OpenMP support for range-based for loops is not well-established, so using integer loop
+//     // instead.
+//     for (unsigned int j = 0; j < initialStatesInKeplerianElements.size(); ++j)
+//     {
+//         IntialStates::iterator iterator = initialStatesInKeplerianElements.begin();
+//         std::advance(iterator, j);
 
-        const Int simulationId = iterator->first;
-        const State initialStateInKeplerianElements = iterator->second;
+//         const Int simulationId = iterator->first;
+//         const State initialStateInKeplerianElements = iterator->second;
 
-#pragma omp critical( outputToConsole )
-        {
-            std::cout << "Executing simulation ID: " << simulationId << std::endl;
-        }
+// #pragma omp critical(outputToConsole)
+//         {
+//             std::cout << "Executing simulation ID: " << simulationId << std::endl;
+//         }
 
-        const State initialState = astro::convertKeplerianToCartesianElements(
-            initialStateInKeplerianElements, input.gravitationalParameter );
+//         const State initialState = astro::convertKeplerianToCartesianElements(
+//             initialStateInKeplerianElements, input.gravitationalParameter);
 
-        // Set current time and state and step size to initial values specified by user.
-        State state = initialState;
-        Real time = input.startTime;
-        Real stepSize = input.timeStep;
+//         // Set current time and state and step size to initial values specified by user.
+//         State state = initialState;
+//         Real time = input.startTime;
+//         Real stepSize = input.timeStep;
 
-        auto stateDerivativePointer = std::bind( &DynamicalSystem::operator( ),
-                                                 &dynamics,
-                                                 std::placeholders::_1,
-                                                 std::placeholders::_2 );
+//         auto stateDerivativePointer = std::bind(&DynamicalSystem::operator(),
+//                                                  &dynamics,
+//                                                  std::placeholders::_1,
+//                                                  std::placeholders::_2);
 
-        Int outputIntervalCounter = 1;
+//         Int outputIntervalCounter = 1;
 
-        while ( time < input.endTime )
-        {
-            Real previousTime = time;
-            State previousState = state;
+//         while (time < input.endTime)
+//         {
+//             Real previousTime = time;
+//             State previousState = state;
 
-            integrate::stepRKF78< Real, State >( time,
-                                                 state,
-                                                 stepSize,
-                                                 stateDerivativePointer,
-                                                 input.relativeTolerance,
-                                                 input.minimumStepSize,
-                                                 input.maximumStepSize );
+//             integrate::stepRKF78< Real, State >(time,
+//                                                  state,
+//                                                  stepSize,
+//                                                  stateDerivativePointer,
+//                                                  input.relativeTolerance,
+//                                                  input.minimumStepSize,
+//                                                  input.maximumStepSize);
 
-            const Real nextOutputTime = input.outputInterval * outputIntervalCounter;
+//             const Real nextOutputTime = input.outputInterval * outputIntervalCounter;
 
-            if ( time > nextOutputTime + input.minimumStepSize )
-            {
-                Real outputStepSize = ( nextOutputTime - previousTime );
-                integrate::stepRKF78< Real, State >( previousTime,
-                                                     previousState,
-                                                     outputStepSize,
-                                                     stateDerivativePointer,
-                                                     input.relativeTolerance,
-                                                     input.minimumStepSize,
-                                                     input.maximumStepSize );
+//             if (time > nextOutputTime + input.minimumStepSize)
+//             {
+//                 Real outputStepSize = (nextOutputTime - previousTime);
+//                 integrate::stepRKF78< Real, State >(previousTime,
+//                                                      previousState,
+//                                                      outputStepSize,
+//                                                      stateDerivativePointer,
+//                                                      input.relativeTolerance,
+//                                                      input.minimumStepSize,
+//                                                      input.maximumStepSize);
 
-                const State stateInKeplerianElements
-                    = astro::convertCartesianToKeplerianElements(
-                        previousState, input.gravitationalParameter );
+//                 const State stateInKeplerianElements
+//                     = astro::convertCartesianToKeplerianElements(
+//                         previousState, input.gravitationalParameter);
 
-                // To avoid locking of the database, this section is thread-critical, so will be
-                // executed one-by-one by multiple threads.
-#pragma omp critical( writeOutputToDatabase )
-                {
-                    simulationResultsInsertQuery.bind( ":simulation_id", simulationId );
-                    simulationResultsInsertQuery.bind( ":time", previousTime );
-                    simulationResultsInsertQuery.bind(
-                        ":semi_major_axis",
-                        stateInKeplerianElements[ astro::semiMajorAxisIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":eccentricity",
-                        stateInKeplerianElements[ astro::eccentricityIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":inclination",
-                        stateInKeplerianElements[ astro::inclinationIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":argument_of_periapsis",
-                        stateInKeplerianElements[ astro::argumentOfPeriapsisIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":longitude_of_ascending_node",
-                        stateInKeplerianElements[ astro::longitudeOfAscendingNodeIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":true_anomaly",
-                        stateInKeplerianElements[ astro::trueAnomalyIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":x_position", state[ astro::xPositionIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":y_position", state[ astro::yPositionIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":z_position", state[ astro::zPositionIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":x_velocity", state[ astro::xVelocityIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":y_velocity", state[ astro::yVelocityIndex ] );
-                    simulationResultsInsertQuery.bind(
-                        ":z_velocity", state[ astro::zVelocityIndex ] );
-                    simulationResultsInsertQuery.bind( ":x_unit_position_sun", 0.0 );
-                    simulationResultsInsertQuery.bind( ":y_unit_position_sun", 0.0 );
-                    simulationResultsInsertQuery.bind( ":z_unit_position_sun", 0.0 );
+//                 // To avoid locking of the database, this section is thread-critical, so will be
+//                 // executed one-by-one by multiple threads.
+// #pragma omp critical(writeOutputToDatabase)
+//                 {
+//                     simulationResultsInsertQuery.bind(":simulation_id", simulationId);
+//                     simulationResultsInsertQuery.bind(":time", previousTime);
+//                     simulationResultsInsertQuery.bind(
+//                         ":semi_major_axis",
+//                         stateInKeplerianElements[ astro::semiMajorAxisIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":eccentricity",
+//                         stateInKeplerianElements[ astro::eccentricityIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":inclination",
+//                         stateInKeplerianElements[ astro::inclinationIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":argument_of_periapsis",
+//                         stateInKeplerianElements[ astro::argumentOfPeriapsisIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":longitude_of_ascending_node",
+//                         stateInKeplerianElements[ astro::longitudeOfAscendingNodeIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":true_anomaly",
+//                         stateInKeplerianElements[ astro::trueAnomalyIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":x_position", state[ astro::xPositionIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":y_position", state[ astro::yPositionIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":z_position", state[ astro::zPositionIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":x_velocity", state[ astro::xVelocityIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":y_velocity", state[ astro::yVelocityIndex ]);
+//                     simulationResultsInsertQuery.bind(
+//                         ":z_velocity", state[ astro::zVelocityIndex ]);
+//                     simulationResultsInsertQuery.bind(":x_unit_position_sun", 0.0);
+//                     simulationResultsInsertQuery.bind(":y_unit_position_sun", 0.0);
+//                     simulationResultsInsertQuery.bind(":z_unit_position_sun", 0.0);
 
-                    // Execute insert query.
-                    simulationResultsInsertQuery.executeStep( );
+//                     // Execute insert query.
+//                     simulationResultsInsertQuery.executeStep();
 
-                    // Reset SQL insert query.
-                    simulationResultsInsertQuery.reset( );
+//                     // Reset SQL insert query.
+//                     simulationResultsInsertQuery.reset();
 
-                    initialStatesUpdateQuery.bind( ":simulation_id", simulationId );
+//                     initialStatesUpdateQuery.bind(":simulation_id", simulationId);
 
-                    // Execute insert query.
-                    initialStatesUpdateQuery.executeStep( );
+//                     // Execute insert query.
+//                     initialStatesUpdateQuery.executeStep();
 
-                    // Reset SQL insert query.
-                    initialStatesUpdateQuery.reset( );
-                }
+//                     // Reset SQL insert query.
+//                     initialStatesUpdateQuery.reset();
+//                 }
 
-                outputIntervalCounter++;
-            }
-        }
+//                 outputIntervalCounter++;
+//             }
+//         }
 
-    }
+//     }
 
-    // Commit transaction.
-    simulationResultsInsertTransaction.commit( );
+//     // Commit transaction.
+//     simulationResultsInsertTransaction.commit();
 
     std::cout << "Simulations run successfully!" << std::endl;
 }
 
 //! Check input parameters for bulk_particle_simulator application mode.
-BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Document& config )
+BulkParticleSimulatorInput checkBulkParticleSimulatorInput(const nlohmann::json& config)
 {
     // Extract number of threads to parallelize simulations using OpenMP.
-    const Int numberOfThreads = find( config, "threads" )->value.GetInt( );
+    const Int numberOfThreads = config.at("threads").get<Int>();
     std::cout << "Number of threads                  " << numberOfThreads << std::endl;
 
     // Extract number of particles to simulate.
-    const Int numberOfParticles = find( config, "particles" )->value.GetInt( );
+    const Int numberOfParticles = config.at("particles").get<Int>();
     std::cout << "Number of particles                " << numberOfParticles << std::endl;
 
     // Extract central gravity model parameters.
-    const Real gravitationalParameter
-        = find( config, "gravitational_parameter" )->value.GetDouble( );
+    const Real gravitationalParameter = config.at("gravitational_parameter").get<Real>();
     std::cout << "Gravitational parameter            " << gravitationalParameter
               << " [km^3 s^-2]" << std::endl;
 
     // Extract J2 gravity model parameters.
-    const bool j2AcclerationModelFlag = find( config, "is_j2_active" )->value.GetBool( );
+    const bool j2AcclerationModelFlag = config.at("is_j2_active").get<bool>();
     std::cout << "Is J2 model active?                "
-              << ( j2AcclerationModelFlag ? "true" : "false" ) << std::endl;
+              << (j2AcclerationModelFlag ? "true" : "false") << std::endl;
 
-    const Real j2Coefficient = find( config, "j2_coefficient" )->value.GetDouble( );
+    const Real j2Coefficient = config.at("j2_coefficient").get<Real>();
     std::cout << "J2 coefficient                     " << j2Coefficient << " [-]" << std::endl;
 
-    const Real equatorialRadius
-        = find( config, "equatorial_radius" )->value.GetDouble( );
+    const Real equatorialRadius = config.at("equatorial_radius").get<Real>();
     std::cout << "Equatorial radius                  " << equatorialRadius << " [km]" << std::endl;
 
     // Extract radiation pressure model parameters.
-    const bool radiationPressureFlag
-        = find( config, "is_radiation_pressure_active" )->value.GetBool( );
+    const bool radiationPressureFlag = config.at("is_radiation_pressure_active").get<bool>();
     std::cout << "Is SRP model active?               "
-              << ( radiationPressureFlag ? "true" : "false" ) << std::endl;
+              << (radiationPressureFlag ? "true" : "false") << std::endl;
 
-    const Real particleRadius = find( config, "particle_radius" )->value.GetDouble( );
+    const Real particleRadius = config.at("particle_radius").get<Real>();
     std::cout << "Particle radius                    "
               << particleRadius << " [micron]" << std::endl;
 
-    const Real particleBulkDensity = find( config, "particle_bulk_density" )->value.GetDouble( );
+    const Real particleBulkDensity = config.at("particle_bulk_density").get<Real>();
     std::cout << "Particle bulk density              "
               << particleBulkDensity << " [kg m^-3]" << std::endl;
 
     const Real radiationPressureCoefficient
-        = find( config, "radiation_pressure_coefficient" )->value.GetDouble( );
+        = config.at("radiation_pressure_coefficient").get<Real>();
     std::cout << "Radiation pressure coefficient     "
               << radiationPressureCoefficient << " [-]" << std::endl;
 
+    const Real solarDistance = config.at("mean_solar_distance").get<Real>();
+    std::cout << "Mean solar distance                " << solarDistance << " [AU]" << std::endl;
+
+    const Real solarGravitationalParameter
+        = config.at("solar_gravitatational_parameter").get<Real>();
+    std::cout << "Solar gravitational parameter      "
+              << solarGravitationalParameter << " [km^3 s^-2]" << std::endl;
+
+    const Real solarEnergyFlux  = config.at("mean_solar_energy_flux").get<Real>();
+    std::cout << "Mean solar energy flux             "
+              << solarEnergyFlux << " [W m^-2]" << std::endl;
+
     // Extract parameters for distribution of initial states of dust particle in Keplerian elements.
-    const Real semiMajorAxisMinimum = find( config, "semi_major_axis_minimum" )->value.GetDouble( );
+    const Real semiMajorAxisMinimum = config.at("semi_major_axis_minimum").get<Real>();
     std::cout << "Semi-major axis minimum            "
               << semiMajorAxisMinimum << " [km]" << std::endl;
 
-    const Real semiMajorAxisMaximum = find( config, "semi_major_axis_maximum" )->value.GetDouble( );
+    const Real semiMajorAxisMaximum = config.at("semi_major_axis_maximum").get<Real>();
     std::cout << "Semi-major axis maximum            "
               << semiMajorAxisMaximum << " [km]" << std::endl;
 
     const Real eccentricityFullWidthHalfMaximum
-        = find( config, "eccentricity_full_width_half_maximum" )->value.GetDouble( );
+        = config.at("eccentricity_full_width_half_maximum").get<Real>();
     std::cout << "Eccentricity FWHM                  "
               << eccentricityFullWidthHalfMaximum << " [-]" << std::endl;
 
     const Real inclinationFullWidthHalfMaximum
-        = find( config, "inclination_full_width_half_maximum" )->value.GetDouble( );
+        = config.at("inclination_full_width_half_maximum").get<Real>();
     std::cout << "Inclination FWHM                   "
               << inclinationFullWidthHalfMaximum << " [rad]" << std::endl;
 
     // Extract selected numerical integrator.
-    const std::string integratorString = find( config, "integrator" )->value.GetString( );
+    const std::string integratorString = config.at("integrator").get<std::string>();
     Integrator integrator = rk4;
-    if ( integratorString.compare( "rk4" ) != 0 )
+    if (integratorString.compare("rk4") != 0)
     {
-        if ( integratorString.compare( "rkf45" ) == 0 )
+        if (integratorString.compare("rkf45") == 0)
         {
             integrator = rkf45;
         }
-        else if ( integratorString.compare( "rkf78" ) == 0 )
+        else if (integratorString.compare("rkf78") == 0)
         {
             integrator = rkf78;
         }
@@ -575,56 +604,59 @@ BulkParticleSimulatorInput checkBulkParticleSimulatorInput( const rapidjson::Doc
     std::cout << "Integrator                         " << integratorString << std::endl;
 
     // Extract integrator time settings.
-    const Real startTime            = find( config, "start_time" )->value.GetDouble( );
+    const Real startTime            = config.at("start_time").get<Real>();
     std::cout << "Start time                         " << startTime << " [s]" << std::endl;
-    const Real endTime              = find( config, "end_time" )->value.GetDouble( );
+    const Real endTime              = config.at("end_time").get<Real>();
     std::cout << "End time                           " << endTime << " [s]" << std::endl;
-    const Real timeStep             = find( config, "time_step" )->value.GetDouble( );
+    const Real timeStep             = config.at("time_step").get<Real>();
     std::cout << "Time step                          " << timeStep << " [s]" << std::endl;
 
     // Extract integrator tolerances.
-    const Real relativeTolerance    = find( config, "relative_tolerance" )->value.GetDouble( );
+    const Real relativeTolerance    = config.at("relative_tolerance").get<Real>();
     std::cout << "Relative tolerance                 " << relativeTolerance << " [-]" << std::endl;
-    const Real absoluteTolerance    = find( config, "absolute_tolerance" )->value.GetDouble( );
+    const Real absoluteTolerance    = config.at("absolute_tolerance").get<Real>();
     std::cout << "Absolute tolerance                 " << absoluteTolerance << " [-]" << std::endl;
 
     // Extract integrator step size bounds.
-    const Real minimumStepSize    = find( config, "minimum_step_size" )->value.GetDouble( );
+    const Real minimumStepSize    = config.at("minimum_step_size").get<Real>();
     std::cout << "Minimum step size                  " << minimumStepSize << " [-]" << std::endl;
-    const Real maximumStepSize    = find( config, "maximum_step_size" )->value.GetDouble( );
+    const Real maximumStepSize    = config.at("maximum_step_size").get<Real>();
     std::cout << "Maximum step size                  " << maximumStepSize << " [-]" << std::endl;
 
-    const Real outputInterval     = find( config, "output_interval" )->value.GetDouble( );
+    const Real outputInterval     = config.at("output_interval").get<Real>();
     std::cout << "Output interval                    " << outputInterval  << " [s]" << std::endl;
 
     // Extract SQLite database settings.
-    const std::string databaseFilePath = find( config, "database_file_path" )->value.GetString( );
+    const std::string databaseFilePath = config.at("database_file_path").get<std::string>();
     std::cout << "Database file path                 " << databaseFilePath << std::endl;
 
-    return BulkParticleSimulatorInput( numberOfThreads,
-                                       numberOfParticles,
-                                       gravitationalParameter,
-                                       j2AcclerationModelFlag,
-                                       j2Coefficient,
-                                       equatorialRadius,
-                                       radiationPressureFlag,
-                                       particleRadius,
-                                       particleBulkDensity,
-                                       radiationPressureCoefficient,
-                                       semiMajorAxisMinimum,
-                                       semiMajorAxisMaximum,
-                                       eccentricityFullWidthHalfMaximum,
-                                       inclinationFullWidthHalfMaximum,
-                                       integrator,
-                                       startTime,
-                                       timeStep,
-                                       endTime,
-                                       relativeTolerance,
-                                       absoluteTolerance,
-                                       minimumStepSize,
-                                       maximumStepSize,
-                                       outputInterval,
-                                       databaseFilePath );
+    return BulkParticleSimulatorInput(numberOfThreads,
+                                      numberOfParticles,
+                                      gravitationalParameter,
+                                      j2AcclerationModelFlag,
+                                      j2Coefficient,
+                                      equatorialRadius,
+                                      radiationPressureFlag,
+                                      particleRadius,
+                                      particleBulkDensity,
+                                      radiationPressureCoefficient,
+                                      solarDistance,
+                                      solarGravitationalParameter,
+                                      solarEnergyFlux,
+                                      semiMajorAxisMinimum,
+                                      semiMajorAxisMaximum,
+                                      eccentricityFullWidthHalfMaximum,
+                                      inclinationFullWidthHalfMaximum,
+                                      integrator,
+                                      startTime,
+                                      timeStep,
+                                      endTime,
+                                      relativeTolerance,
+                                      absoluteTolerance,
+                                      minimumStepSize,
+                                      maximumStepSize,
+                                      outputInterval,
+                                      databaseFilePath);
 }
 
 } // namespace dustsim

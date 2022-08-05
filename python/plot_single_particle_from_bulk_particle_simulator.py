@@ -1,5 +1,5 @@
 '''
-Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)
+Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
 Distributed under the MIT License.
 See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 '''
@@ -34,7 +34,7 @@ import time
 print ("")
 print ("------------------------------------------------------------------")
 print ("                             dustsim                              ")
-print ("      Copyright (c) 2009-2018, K. Kumar (me@kartikkumar.com)      ")
+print ("      Copyright (c) 2009-2022, K. Kumar (me@kartikkumar.com)      ")
 print ("------------------------------------------------------------------")
 print ("")
 
