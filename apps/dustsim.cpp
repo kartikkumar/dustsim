@@ -5,6 +5,7 @@
  */
 
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -14,7 +15,7 @@
 #include <nlohmann/json.hpp>
 
 #include "dustsim/singleParticleSimulator.hpp"
-// #include "dustsim/bulkParticleSimulator.hpp"
+// // #include "dustsim/bulkParticleSimulator.hpp"
 
 int main(const int numberOfInputs, const char* inputArguments[])
 {
@@ -25,7 +26,7 @@ int main(const int numberOfInputs, const char* inputArguments[])
     std::cout << std::endl;
     std::cout << "                              dustsim                             " << std::endl;
     std::cout << std::endl;
-    std::cout << "      Copyright (c) 2009-2022, K. Kumar (me@kartikkumar.com)      " << std::endl;
+    std::cout << "      Copyright (c) 2009-2023, K. Kumar (me@kartikkumar.com)      " << std::endl;
     std::cout << std::endl;
     std::cout << "------------------------------------------------------------------" << std::endl;
     std::cout << std::endl;
@@ -36,7 +37,7 @@ int main(const int numberOfInputs, const char* inputArguments[])
 
     std::cout << std::endl;
     std::cout << "******************************************************************" << std::endl;
-    std::cout << "                      Extract input parameters                    " << std::endl;
+    std::cout << "                       Parse input parameters                     " << std::endl;
     std::cout << "******************************************************************" << std::endl;
     std::cout << std::endl;
 
@@ -79,12 +80,12 @@ int main(const int numberOfInputs, const char* inputArguments[])
     std::string mode = config.at("mode").get<std::string>();
     if (mode.compare("single_particle_simulator") == 0)
     {
-        std::cout << "Mode                               " << mode << std::endl;
+        std::cout << "  Mode                             " << mode << std::endl;
         dustsim::executeSingleParticleSimulator(config);
     }
     else if (mode.compare("bulk_particle_simulator") == 0)
     {
-        std::cout << "Mode                               " << mode << std::endl;
+        std::cout << "  Mode                             " << mode << std::endl;
         // dustsim::executeBulkParticleSimulator(config);
     }
     else
@@ -94,7 +95,7 @@ int main(const int numberOfInputs, const char* inputArguments[])
         throw;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////
 

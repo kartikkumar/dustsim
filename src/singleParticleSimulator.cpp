@@ -11,8 +11,6 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <nlohmann/json.hpp>
-
 #include <sml/smlAll.hpp>
 #include <astro/astroAll.hpp>
 #include <integrate/integrateAll.hpp>
@@ -32,28 +30,40 @@ void executeSingleParticleSimulator(const nlohmann::json& config)
 
     std::cout << std::endl;
     std::cout << "******************************************************************" << std::endl;
-    std::cout << "                           Run simulator                          " << std::endl;
+    std::cout << "                 Compute additional model parameters              " << std::endl;
     std::cout << "******************************************************************" << std::endl;
     std::cout << std::endl;
 
     // Compute mean motion of central body around the Sun [rad/s].
     const Real solarMeanMotion = astro::computeKeplerMeanMotion(
         input.solarDistance * astro::ASTRO_AU_IN_KM, input.solarGravitationalParameter);
+    std::cout << "  Solar mean motion                " << solarMeanMotion
+              << " [rad s^-1]" << std::endl;
 
     // Compute radiation pressure for complete absorption at distance of central body from the
     // Sun [N m^-2].
     const Real radiationPressure = astro::computeAbsorptionRadiationPressure(input.solarEnergyFlux);
+    std::cout << "  Radiation pressure               " << radiationPressure
+              << " [N m^2]" << std::endl;
 
     // Compute initial state in Cartesian elements.
     const State initialState = astro::convertKeplerianToCartesianElements(
         input.initialStateKeplerianElements, input.gravitationalParameter);
-    std::cout << "Cartesian initial state            (" << initialState << ")" << std::endl;
+    std::cout << "  Cartesian initial state          (" << initialState << ")" << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "******************************************************************" << std::endl;
+    std::cout << "                           Run simulator                          " << std::endl;
+    std::cout << "******************************************************************" << std::endl;
     std::cout << std::endl;
 
     // Set current time and state and step size to initial values specified by user.
+    std::cout << "Setting up numerical integrator settings ..." << std::endl;
     State state = initialState;
     Real time = input.startTime;
     Real stepSize = input.timeStep;
+    std::cout << "Numerical integrator settings set up successfully!" << std::endl;
+    std::cout << std::endl;
 
     // Create instance of dynamical system.
     std::cout << "Setting up dynamical model ..." << std::endl;
@@ -106,6 +116,10 @@ void executeSingleParticleSimulator(const nlohmann::json& config)
     metadataFile << std::endl;
     print(metadataFile, "time_step", input.timeStep, "s");
     metadataFile << std::endl;
+    print(metadataFile, "solar_mean_motion", solarMeanMotion, "rad s^{-1}");
+    metadataFile << std::endl;
+    print(metadataFile, "radiation_pressure", radiationPressure, "N m^{2}");
+    metadataFile << std::endl;
 
     // Create file stream to write state history to.
     std::ofstream stateHistoryFile(input.stateHistoryFilePath);
@@ -116,21 +130,21 @@ void executeSingleParticleSimulator(const nlohmann::json& config)
                      << time << ","
                      << stepSize << ", "
                      << state << ","
-                     << astro::convertCartesianToKeplerianElements(
-                            state, input.gravitationalParameter) << std::endl;
+                     << input.initialStateKeplerianElements << std::endl;
 
-    // Set up numerical integrator.
-    std::cout << "Executing numerical integration ..." << std::endl;
+    // Set up member function pointer to point to state derivative function defined for
+    // the dynamical system.
     auto stateDerivativePointer = std::bind(&DynamicalSystem::operator(),
                                             &dynamics,
                                             std::placeholders::_1,
                                             std::placeholders::_2);
 
+    // Set up numerical integrator.
+    std::cout << "Executing numerical integration and writing results to file ..." << std::endl;
     if (input.integrator == rk4)
     {
         while (time < input.endTime)
         {
-
             integrate::stepRK4<Real, State>(time,
                                             state,
                                             stepSize,
@@ -147,91 +161,92 @@ void executeSingleParticleSimulator(const nlohmann::json& config)
                              << stateInKeplerElements << std::endl;
         }
     }
-    else if (input.integrator == rkf45)
-    {
-        while (time < input.endTime)
-        {
-            integrate::stepRKF45<Real, State>(time,
-                                              state,
-                                              stepSize,
-                                              stateDerivativePointer,
-                                              input.relativeTolerance,
-                                              input.minimumStepSize,
-                                              input.maximumStepSize);
+    // // // else if (input.integrator == rkf45)
+    // // // {
+    // // //     while (time < input.endTime)
+    // // //     {
+    // // //         integrate::stepRKF45<Real, State>(time,
+    // // //                                           state,
+    // // //                                           stepSize,
+    // // //                                           stateDerivativePointer,
+    // // //                                           input.relativeTolerance,
+    // // //                                           input.minimumStepSize,
+    // // //                                           input.maximumStepSize);
 
-            const State stateInKeplerElements
-                = astro::convertCartesianToKeplerianElements(state,
-                                                             input.gravitationalParameter);
+    // // //         const State stateInKeplerElements
+    // // //             = astro::convertCartesianToKeplerianElements(state,
+    // // //                                                          input.gravitationalParameter);
 
-            stateHistoryFile << std::setprecision(std::numeric_limits<double>::digits10)
-                             << time << ","
-                             << stepSize << ","
-                             << state << ","
-                             << stateInKeplerElements << std::endl;
-        }
-    }
+    // // //         stateHistoryFile << std::setprecision(std::numeric_limits<double>::digits10)
+    // // //                          << time << ","
+    // // //                          << stepSize << ","
+    // // //                          << state << ","
+    // // //                          << stateInKeplerElements << std::endl;
+        // }
+    // }
     else if (input.integrator == rkf78)
     {
-        Int outputIntervalCounter = 1;
+    // // //     Int outputIntervalCounter = 1;
 
-        while (time < input.endTime)
-        {
-            Real previousTime = time;
-            State previousState = state;
+    // // //     while (time < input.endTime)
+    // // //     {
+    // // //         Real previousTime = time;
+    // // //         State previousState = state;
 
-            integrate::stepRKF78<Real, State>(time,
-                                              state,
-                                              stepSize,
-                                              stateDerivativePointer,
-                                              input.relativeTolerance,
-                                              input.minimumStepSize,
-                                              input.maximumStepSize);
+    // // //         integrate::stepRKF78<Real, State>(time,
+    // // //                                           state,
+    // // //                                           stepSize,
+    // // //                                           stateDerivativePointer,
+    // // //                                           input.relativeTolerance,
+    // // //                                           input.minimumStepSize,
+    // // //                                           input.maximumStepSize);
 
-            Real nextOutputTime = input.startTime + input.outputInterval * outputIntervalCounter;
+    // // //         Real nextOutputTime = input.startTime + input.outputInterval * outputIntervalCounter;
 
-            if (input.outputInterval > 0.0)
-            {
-                while (time > nextOutputTime + input.minimumStepSize)
-                {
-                    Real outputStepSize = (nextOutputTime - previousTime);
+    // // //         if (input.outputInterval > 0.0)
+    // // //         {
+    // // //             while (time > nextOutputTime + input.minimumStepSize)
+    // // //             {
+    // // //                 Real outputStepSize = (nextOutputTime - previousTime);
 
-                    integrate::stepRKF78<Real, State>(previousTime,
-                                                      previousState,
-                                                      outputStepSize,
-                                                      stateDerivativePointer,
-                                                      input.relativeTolerance,
-                                                      input.minimumStepSize,
-                                                      input.maximumStepSize);
-                    const State stateInKeplerElements
-                        = astro::convertCartesianToKeplerianElements(previousState,
-                                                                      input.gravitationalParameter);
+    // // //                 integrate::stepRKF78<Real, State>(previousTime,
+    // // //                                                   previousState,
+    // // //                                                   outputStepSize,
+    // // //                                                   stateDerivativePointer,
+    // // //                                                   input.relativeTolerance,
+    // // //                                                   input.minimumStepSize,
+    // // //                                                   input.maximumStepSize);
+    // // //                 const State stateInKeplerElements
+    // // //                     = astro::convertCartesianToKeplerianElements(previousState,
+    // // //                                                                   input.gravitationalParameter);
 
-                    stateHistoryFile << std::setprecision(std::numeric_limits<double>::digits10)
-                                     << previousTime << ","
-                                     << input.outputInterval << ","
-                                     << previousState << ","
-                                     << stateInKeplerElements << std::endl;
+    // // //                 stateHistoryFile << std::setprecision(std::numeric_limits<double>::digits10)
+    // // //                                  << previousTime << ","
+    // // //                                  << input.outputInterval << ","
+    // // //                                  << previousState << ","
+    // // //                                  << stateInKeplerElements << std::endl;
 
-                    outputIntervalCounter++;
-                    nextOutputTime = input.startTime + input.outputInterval * outputIntervalCounter;
-                }
-            }
-            else
-            {
-                const State stateInKeplerElements
-                    = astro::convertCartesianToKeplerianElements(state,
-                                                                  input.gravitationalParameter);
+    // // //                 outputIntervalCounter++;
+    // // //                 nextOutputTime = input.startTime + input.outputInterval * outputIntervalCounter;
+    // // //             }
+    // // //         }
+    // // //         else
+    // // //         {
+    // // //             const State stateInKeplerElements
+    // // //                 = astro::convertCartesianToKeplerianElements(state,
+    // // //                                                               input.gravitationalParameter);
 
-                stateHistoryFile << std::setprecision(std::numeric_limits<double>::digits10)
-                                 << time << ","
-                                 << stepSize << ","
-                                 << state << ","
-                                 << stateInKeplerElements << std::endl;
-            }
-        }
+    // // //             stateHistoryFile << std::setprecision(std::numeric_limits<double>::digits10)
+    // // //                              << time << ","
+    // // //                              << stepSize << ","
+    // // //                              << state << ","
+    // // //                              << stateInKeplerElements << std::endl;
+    // // //         }
+    // // //     }
     }
 
-    std::cout << "Numerical integrator executed successfully!" << std::endl;
+    std::cout << "Numerical integrator executed successfully and results written to file!"
+              << std::endl;
 }
 
 //! Check input parameters for single_particle_simulator application mode.
@@ -239,47 +254,47 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput(const nlohmann::j
 {
     // Extract central gravity model parameters.
     const Real gravitationalParameter = config.at("gravitational_parameter").get<Real>();
-    std::cout << "Gravitational parameter            " << gravitationalParameter
+    std::cout << "  Gravitational parameter          " << gravitationalParameter
               << " [km^3 s^-2]" << std::endl;
 
     // Extract J2 gravity model parameters.
     const bool j2AcclerationModelFlag = config.at("is_j2_active").get<bool>();
-    std::cout << "Is J2 model active?                " << j2AcclerationModelFlag << std::endl;
+    std::cout << "  Is J2 model active?              " << j2AcclerationModelFlag << std::endl;
 
     const Real j2Coefficient = config.at("j2_coefficient").get<Real>();
-    std::cout << "J2 coefficient                     " << j2Coefficient << " [-]" << std::endl;
+    std::cout << "  J2 coefficient                   " << j2Coefficient << " [-]" << std::endl;
 
     const Real equatorialRadius = config.at("equatorial_radius").get<Real>();
-    std::cout << "Equatorial radius                  " << equatorialRadius << " [km]" << std::endl;
+    std::cout << "  Equatorial radius                " << equatorialRadius << " [km]" << std::endl;
 
     // Extract radiation pressure model parameters.
     const bool radiationPressureFlag
         = config.at("is_radiation_pressure_active").get<bool>();
-    std::cout << "Is SRP model active?               "
+    std::cout << "  Is SRP model active?             "
               << (radiationPressureFlag ? "true" : "false") << std::endl;
 
     const Real particleRadius = config.at("particle_radius").get<Real>() * 1.0e-6;
-    std::cout << "Particle radius                    " << particleRadius << " [m]" << std::endl;
+    std::cout << "  Particle radius                  " << particleRadius << " [m]" << std::endl;
 
     const Real particleBulkDensity = config.at("particle_bulk_density").get<Real>();
-    std::cout << "Particle bulk density              "
+    std::cout << "  Particle bulk density            "
               << particleBulkDensity << " [kg m^-3]" << std::endl;
 
     const Real radiationPressureCoefficient
         = config.at("radiation_pressure_coefficient").get<Real>();
-    std::cout << "Radiation pressure coefficient     "
+    std::cout << "  Radiation pressure coefficient   "
               << radiationPressureCoefficient << " [-]" << std::endl;
 
     const Real solarDistance = config.at("mean_solar_distance").get<Real>();
-    std::cout << "Mean solar distance                " << solarDistance << " [AU]" << std::endl;
+    std::cout << "  Mean solar distance              " << solarDistance << " [AU]" << std::endl;
 
     const Real solarGravitationalParameter
         = config.at("solar_gravitatational_parameter").get<Real>();
-    std::cout << "Solar gravitational parameter      "
+    std::cout << "  Solar gravitational parameter    "
               << solarGravitationalParameter << " [km^3 s^-2]" << std::endl;
 
     const Real solarEnergyFlux  = config.at("mean_solar_energy_flux").get<Real>();
-    std::cout << "Mean solar energy flux             "
+    std::cout << "  Mean solar energy flux           "
               << solarEnergyFlux << " [W m^-2]" << std::endl;
 
     // Extract initial state of dust particle in Keplerian elements.
@@ -307,7 +322,7 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput(const nlohmann::j
 
     const State initialStateKeplerianElements(initialStateKeplerianElementsVector);
 
-    std::cout << "Initial state (Kepler)             ("
+    std::cout << "  Initial state (Kepler)           ("
               << initialStateKeplerianElements[astro::semiMajorAxisIndex] << ", "
               << initialStateKeplerianElements[astro::eccentricityIndex] << ", "
               << initialStateKeplerianElements[astro::inclinationIndex] << ", "
@@ -338,38 +353,39 @@ SingleParticleSimulatorInput checkSingleParticleSimulatorInput(const nlohmann::j
             throw;
         }
     }
-    std::cout << "Integrator                         " << integratorString << std::endl;
+    std::cout << "  Integrator                       " << integratorString << std::endl;
 
     // Extract integrator time settings.
     const Real stateTime            = config.at("start_time").get<Real>();
-    std::cout << "Start epoch                        " << stateTime << " [s]" << std::endl;
+    std::cout << "  Start epoch                      " << stateTime << " [s]" << std::endl;
     const Real endTime              = config.at("end_time").get<Real>();
-    std::cout << "End epoch                          " << endTime << " [s]" << std::endl;
+    std::cout << "  End epoch                        " << endTime << " [s]" << std::endl;
     const Real timeStep             = config.at("time_step").get<Real>();
-    std::cout << "Time step                          " << timeStep << " [s]" << std::endl;
+    std::cout << "  Time step                        " << timeStep << " [s]" << std::endl;
 
     // Extract integrator tolerances.
     const Real relativeTolerance    = config.at("relative_tolerance").get<Real>();
-    std::cout << "Relative tolerance                 " << relativeTolerance << " [-]" << std::endl;
+    std::cout << "  Relative tolerance               " << relativeTolerance << " [-]" << std::endl;
     const Real absoluteTolerance    = config.at("absolute_tolerance").get<Real>();
-    std::cout << "Absolute tolerance                 " << absoluteTolerance << " [-]" << std::endl;
+    std::cout << "  Absolute tolerance               " << absoluteTolerance << " [-]" << std::endl;
 
     // Extract integrator step size bounds.
     const Real minimumStepSize    = config.at("minimum_step_size").get<Real>();
-    std::cout << "Minimum step size                  " << minimumStepSize << " [s]" << std::endl;
+    std::cout << "  Minimum step size                " << minimumStepSize << " [s]" << std::endl;
     const Real maximumStepSize    = config.at("maximum_step_size").get<Real>();
-    std::cout << "Maximum step size                  " << maximumStepSize << " [s]" << std::endl;
+    std::cout << "  Maximum step size                " << maximumStepSize << " [s]" << std::endl;
 
     const Real outputInterval    = config.at("output_interval").get<Real>();
-    std::cout << "Output interval                    " << outputInterval << " [s]" << std::endl;
+    std::cout << "  Output interval                  " << outputInterval << " [s]" << std::endl;
 
     // Extract file writer settings.
+    const std::string rootDirectory = config.at("root_directory").get<std::string>();
     const std::string metadataFilePath
-        = config.at("metadata_file_path").get<std::string>();
-    std::cout << "Metadata file path                 " << metadataFilePath << std::endl;
+        = rootDirectory + "/" + config.at("metadata_file_path").get<std::string>();
+    std::cout << "  Metadata file path               " << metadataFilePath << std::endl;
     const std::string stateHistoryFilePath
-        = config.at("state_history_file_path").get<std::string>();
-    std::cout << "State history file path            " << stateHistoryFilePath << std::endl;
+        = rootDirectory + "/" + config.at("state_history_file_path").get<std::string>();
+    std::cout << "  State history file path          " << stateHistoryFilePath << std::endl;
 
     return SingleParticleSimulatorInput(gravitationalParameter,
                                         j2AcclerationModelFlag,

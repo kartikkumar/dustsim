@@ -1,0 +1,125 @@
+// Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
+// Distributed under the MIT License.
+// See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
+
+// Configuration file for dustsim.
+{
+    // Select simulator mode.
+    // (single_particle_simulator|bulk_particle_simulator)
+    "mode"                                  : "single_particle_simulator",
+
+    // Set reference root directory for input and output files
+    // Note that the directory must exist already!
+    "root_directory"                        : "/Users/kartikkumar/Desktop",
+
+    ////
+    // Central gravity
+    ////
+
+    // Set gravitational parameter of the central body.
+    // Units: [km^3 s^-2]
+    // Source: https://ssd.jpl.nasa.gov/tools/gravity.html#/outerplanets
+    "gravitational_parameter"               : 5793951.3,
+
+    // Set equatorial radius corresponding to spherical harmonics expansion of gravity field.
+    /// Units: [km]
+    // This is a required parameter even if the J2 gravitational acceleration model is not
+    // included, since it is needed by the plotting script.
+    // Source: https://ssd.jpl.nasa.gov/tools/gravity.html#/outerplanets
+    "equatorial_radius"                     : 25559.0,
+
+    ////
+    // J2
+    ////
+
+    // Set whether the J2 gravitational acceleration model should be included.
+    "is_j2_active"                          : true,
+
+    // Set J2 coefficient of spherical harmonics expansion of gravity field.
+    // Source: https://ssd.jpl.nasa.gov/tools/gravity.html#/outerplanets
+    // Source: https://www.mathworks.com/help/aerotbx/ug/gravityzonal.html
+    "j2_coefficient"                        : 0.012,
+
+    ////
+    // Solar radiation pressure
+    ////
+
+    // Set whether the solar radiation pressure acceleration model should be included.
+    "is_radiation_pressure_active"          : true,
+
+    // Set particle radius.
+    // Units: [micron]
+    "particle_radius"                       : 1.0,
+
+    // Set bulk density.
+    // Units: [kg m^-3]
+    "particle_bulk_density"                 : 1000.0,
+
+    // Set radiation pressure coefficient.
+    "radiation_pressure_coefficient"        : 1.0,
+
+    // Set mean distance to the Sun.
+    // Units: [AU]
+    // Source: https://ssd.jpl.nasa.gov/planets/approx_pos.html
+    "mean_solar_distance"                   : 19.19126393,
+
+    // Set gravitational parameter of the Sun.
+    // Units: [km^3 s^-2]
+    "solar_gravitatational_parameter"       : 1.32712440018e11,
+
+    // Set mean solar energy flux at mean distance from the Sun.
+    // Units: [W m^-2]
+    // Source: https://nssdc.gsfc.nasa.gov/planetary/factsheet/uranusfact.html
+    "mean_solar_energy_flux"                : 3.69,
+
+
+    ////
+    // Initial state
+    ////
+
+    // Set initial state of dust particle in Keplerian elements at start of simulation.
+    // Units: (sma [km], e, i [deg], aop [deg], raan [deg], ta [deg])
+    "initial_state_kepler"                  : [97740.0, 0.1, 5.0, 120.0, 60.0, 35.0],
+
+    ////
+    // Numerical integrator
+    ////
+
+    // Select numerical integrator.
+    // (rk4|rkf45|rkf78)
+    "integrator"                            : "rk4",
+
+    // Set up integrator time parameters.
+    // Units: [s]
+    "start_time"                            : 0.0,
+    // Units: [s]
+    // Source: https://www.convertunits.com/from/seconds/to/Julian+year
+    "end_time"                              : 864000.0,
+    // Units: [s]
+    "time_step"                             : 60.0,
+
+    // Set up integrator tolerances (only applicable for adaptive step size integrators).
+    "relative_tolerance"                    : 1e-12,
+    "absolute_tolerance"                    : 1e-15,
+
+    // Set up integrator step size bounds (only applicable for adaptive step size integrators).
+    // Units: [s]
+    "minimum_step_size"                     : 1e-12,
+    // Units: [s]
+    "maximum_step_size"                     : 3600.00,
+
+    // Set fixed output interval.
+    // Units: [s]
+    // If this is set to 0.0, output is written to file for each step that the integrator takes.
+    // If this is set to any positive value, output is only written to file at the specified fixed
+    // interval (only applicable for adaptive step size integrators).
+    "output_interval"                       : 0.0,
+
+    ////
+    // Output
+    ////
+
+    // Set up file writer options.
+    "metadata_file_path"                    : "metadata.csv",
+    "state_history_file_path"               : "state-history.csv"
+}

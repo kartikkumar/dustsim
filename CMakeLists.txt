@@ -66,12 +66,12 @@ FetchContent_Declare(astro
   GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(astro)
 
-# Fetch SQLiteCpp library
-FetchContent_Declare(SQLiteCpp
-  GIT_REPOSITORY https://github.com/SRombauts/SQLiteCpp
-  GIT_PROGRESS TRUE
-  GIT_SHALLOW TRUE)
-FetchContent_MakeAvailable(SQLiteCpp)
+## Fetch SQLiteCpp library
+#FetchContent_Declare(SQLiteCpp
+#  GIT_REPOSITORY https://github.com/SRombauts/SQLiteCpp
+#  GIT_PROGRESS TRUE
+#  GIT_SHALLOW TRUE)
+#FetchContent_MakeAvailable(SQLiteCpp)
 
 # Instantiate version file based on project details
 configure_file (

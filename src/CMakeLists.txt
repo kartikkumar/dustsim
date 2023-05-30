@@ -29,7 +29,8 @@ add_library(
 )
 target_include_directories(dustsim_lib PUBLIC ../include)
 target_compile_features(dustsim_lib PRIVATE cxx_std_11)
-target_link_libraries(dustsim_lib PRIVATE sml_lib integrate_lib astro_lib SQLiteCpp nlohmann_json::nlohmann_json)
+#target_link_libraries(dustsim_lib PRIVATE sml_lib integrate_lib astro_lib SQLiteCpp nlohmann_json::nlohmann_json)
+target_link_libraries(dustsim_lib PRIVATE sml_lib integrate_lib astro_lib nlohmann_json::nlohmann_json)
 
 # IDEs should put the headers in a nice place
 source_group(

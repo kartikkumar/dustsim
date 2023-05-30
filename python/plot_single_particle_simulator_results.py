@@ -29,15 +29,15 @@ import pandas as pd
 import sys
 import time
 
+# Start timer.
+start_time = time.time( )
+
 print ("")
 print ("------------------------------------------------------------------")
 print ("                             dustsim                              ")
-print ("      Copyright (c) 2009-2022, K. Kumar (me@kartikkumar.com)      ")
+print ("      Copyright (c) 2009-2023, K. Kumar (me@kartikkumar.com)      ")
 print ("------------------------------------------------------------------")
 print ("")
-
-# Start timer.
-start_time = time.time( )
 
 print ("")
 print ("******************************************************************")
@@ -116,10 +116,10 @@ ax3.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
 ax3.grid()
 
 # Plot metadata table.
-# @TODO: Fix font size.
-ax4.axis('off')
-the_table = ax4.table(cellText=metadata_table,colLabels=None,cellLoc='center',loc='center')
-table_props = the_table.properties()
+# # @TODO: Fix font size.
+# ax4.axis('off')
+# the_table = ax4.table(cellText=metadata_table,colLabels=None,cellLoc='center',loc='center')
+# table_props = the_table.properties()
 # table_cells = table_props['child_artists']
 # for cell in table_cells:
 #     cell.set_height(0.15)
@@ -131,7 +131,7 @@ table_props = the_table.properties()
 plt.tight_layout()
 plt.savefig(output_path_prefix + config["2D_figure"], dpi=config["figure_dpi"])
 
-# Generate figure with time histories of Kepler elements.
+# Generate figure with time histories of Keplerian elements.
 fig = plt.figure()
 ax1 = fig.add_subplot(2, 3, 1)
 ax2 = fig.add_subplot(2, 3, 2)
@@ -176,7 +176,8 @@ ax5.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
 ax5.grid()
 
 # Plot time-history of true anomaly.
-ax6.plot(state_history['t'],np.unwrap(np.degrees(state_history['ta'])),color='k')
+# ax6.plot(state_history['t'],np.unwrap(np.degrees(state_history['ta'])),color='k')
+ax6.plot(state_history['t'],np.degrees(state_history['ta']),color='k')
 ax6.set_xlabel('t [s]')
 ax6.set_ylabel(r'$\theta$ [deg]')
 ax6.ticklabel_format(style='sci', axis='both', scilimits=(0,0))
@@ -222,17 +223,76 @@ if config["show_3D_figure"]:
     plt.grid()
     plt.show()
 
+# Generate figure with time history of orbital energy.
+fig = plt.figure()
+gravitational_parameter = float(metadata[1][0])
+plt.plot(state_history['t'],-gravitational_parameter/(2*state_history['a']),color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "orbital-energy-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of true anomaly.
+fig = plt.figure()
+plt.plot(state_history['t'],np.degrees(state_history['ta']),color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "true-anomaly-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of x-position.
+fig = plt.figure()
+plt.plot(state_history['t'],state_history['x'],color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "x-position-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of y-position.
+fig = plt.figure()
+plt.plot(state_history['t'],state_history['y'],color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "y-position-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of z-position.
+fig = plt.figure()
+plt.plot(state_history['t'],state_history['z'],color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "z-position-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of x-velocity.
+fig = plt.figure()
+plt.plot(state_history['t'],state_history['xdot'],color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "x-velocity-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of y-velocity.
+fig = plt.figure()
+plt.plot(state_history['t'],state_history['ydot'],color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "y-velocity-time-history.png", dpi=config["figure_dpi"])
+
+# Generate figure with time history of z-velocity.
+fig = plt.figure()
+plt.plot(state_history['t'],state_history['zdot'],color='k')
+plt.tight_layout()
+plt.savefig(output_path_prefix + "z-velocity-time-history.png", dpi=config["figure_dpi"])
+
 print ("Figures generated successfully!")
 print ("")
 
-# Stop timer
-end_time = time.time( )
+print ("")
+print ("******************************************************************")
+print ("                              Metrics                             ")
+print ("******************************************************************")
+print ("")
+
+# Print percentage change in orbital energy
+percentage_change_in_orbital_energy = max(abs(state_history['a']-state_history['a'][0]))/state_history['a'][0]*100.0
+print ("Percentage change in orbital energy: {0} %".format(percentage_change_in_orbital_energy))
 
 print ("")
 print ("------------------------------------------------------------------")
 print ("                         Exited successfully!                     ")
 print ("------------------------------------------------------------------")
 print ("")
+
+# Stop timer
+end_time = time.time( )
 
 # Print elapsed time
 print ("(Script time: " + str("{:,g}".format(end_time - start_time)) + "s)")

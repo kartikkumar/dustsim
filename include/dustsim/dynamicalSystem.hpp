@@ -96,23 +96,23 @@ public:
                                                                        j2Coefficient);
         }
 
-        // // Add solar radiation pressure acceleration if model is set to active.
-        // if (isRadiationPressureAccelerationModelActive)
-        // {
-        //     // Compute unit vector to the Sun based on elapsed time.
-        //     // Inclination of central body around Sun is assumed to be zero.
-        //     const Real elapsedOrbitAngle = solarMeanMotion * time;
-        //     const Vector unitVectorToSun({std::cos(elapsedOrbitAngle),
-        //                                   std::sin(elapsedOrbitAngle),
-        //                                   0.0});
-        //     acceleration = acceleration
-        //                    + astro::computeCannonballRadiationPressureAcceleration(
-        //                         radiationPressure,
-        //                         radiationPressureCoefficient,
-        //                         unitVectorToSun,
-        //                         particleRadius,
-        //                         particleBulkDensity);
-        // }
+        // Add solar radiation pressure acceleration if model is set to active.
+        if (isRadiationPressureAccelerationModelActive)
+        {
+            // Compute unit vector to the Sun based on elapsed time.
+            // Inclination of central body around Sun is assumed to be zero.
+            const Real elapsedOrbitAngle = solarMeanMotion * time;
+            const Vector unitVectorToSun({std::cos(elapsedOrbitAngle),
+                                          std::sin(elapsedOrbitAngle),
+                                          0.0});
+            acceleration = acceleration
+                           + astro::computeCannonballRadiationPressureAcceleration(
+                                radiationPressure,
+                                radiationPressureCoefficient,
+                                unitVectorToSun,
+                                particleRadius,
+                                particleBulkDensity);
+        }
 
         return State({state[3],
                       state[4],

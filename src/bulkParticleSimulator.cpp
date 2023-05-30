@@ -19,8 +19,6 @@
 
 #include <nlohmann/json.hpp>
 
-// #include <keplerian_toolbox.h>
-
 #include <SQLiteCpp/SQLiteCpp.h>
 
 #include <astro/astroAll.hpp>
