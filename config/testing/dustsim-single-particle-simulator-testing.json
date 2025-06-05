@@ -1,4 +1,4 @@
-// Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
+// Copyright (c) 2009-2025 Kartik Kumar (me@kartikkumar.com)
 // Distributed under the MIT License.
 // See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
 
@@ -10,7 +10,7 @@
 
     // Set reference root directory for input and output files
     // Note that the directory must exist already!
-    "root_directory"                        : "/Users/kartikkumar/Desktop",
+    "io_directory"                          : "/Users/kartikkumar/Desktop/phd-results/2025-06-03/dustsim-single-uranus-mu-rk4-1dy",
 
     ////
     // Central gravity
@@ -22,7 +22,7 @@
     "gravitational_parameter"               : 5793951.3,
 
     // Set equatorial radius corresponding to spherical harmonics expansion of gravity field.
-    /// Units: [km]
+    // Units: [km]
     // This is a required parameter even if the J2 gravitational acceleration model is not
     // included, since it is needed by the plotting script.
     // Source: https://ssd.jpl.nasa.gov/tools/gravity.html#/outerplanets
@@ -33,7 +33,7 @@
     ////
 
     // Set whether the J2 gravitational acceleration model should be included.
-    "is_j2_active"                          : true,
+    "is_j2_active"                          : false,
 
     // Set J2 coefficient of spherical harmonics expansion of gravity field.
     // Source: https://ssd.jpl.nasa.gov/tools/gravity.html#/outerplanets
@@ -45,7 +45,7 @@
     ////
 
     // Set whether the solar radiation pressure acceleration model should be included.
-    "is_radiation_pressure_active"          : true,
+    "is_radiation_pressure_active"          : false,
 
     // Set particle radius.
     // Units: [micron]
@@ -87,33 +87,33 @@
 
     // Select numerical integrator.
     // (rk4|rkf45|rkf78)
-    "integrator"                            : "rk4",
+    "integrator"                            : "rkf45",
 
     // Set up integrator time parameters.
     // Units: [s]
     "start_time"                            : 0.0,
     // Units: [s]
     // Source: https://www.convertunits.com/from/seconds/to/Julian+year
-    "end_time"                              : 864000.0,
+    "end_time"                              : 86400.0,
     // Units: [s]
     "time_step"                             : 60.0,
 
     // Set up integrator tolerances (only applicable for adaptive step size integrators).
-    "relative_tolerance"                    : 1e-12,
-    "absolute_tolerance"                    : 1e-15,
+    "relative_tolerance"                    : 1e-10,
+    "absolute_tolerance"                    : 1e-12,
 
     // Set up integrator step size bounds (only applicable for adaptive step size integrators).
     // Units: [s]
-    "minimum_step_size"                     : 1e-12,
+    "minimum_step_size"                     : 1e-10,
     // Units: [s]
     "maximum_step_size"                     : 3600.00,
 
     // Set fixed output interval.
     // Units: [s]
-    // If this is set to 0.0, output is written to file for each step that the integrator takes.
+    // If this is not set, output is written to file for each step that the integrator takes.
     // If this is set to any positive value, output is only written to file at the specified fixed
     // interval (only applicable for adaptive step size integrators).
-    "output_interval"                       : 0.0,
+    // "output_interval"                       : ,
 
     ////
     // Output

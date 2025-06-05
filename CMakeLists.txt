@@ -1,4 +1,4 @@
-# Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
+# Copyright (c) 2009-2025 Kartik Kumar (me@kartikkumar.com)
 # Distributed under the MIT License.
 # See accompanying file LICENSE or copy at http://opensource.org/licenses/MIT
 
@@ -39,10 +39,10 @@ include(FetchContent)
 # Fetch JSON library
 # Source: https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
 FetchContent_Declare(json
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+  GIT_REPOSITORY https://github.com/nlohmann/json
   GIT_PROGRESS TRUE
   GIT_SHALLOW TRUE
-  GIT_TAG v3.10.5)
+  GIT_TAG v3.11.3)
 FetchContent_MakeAvailable(json)
 
 # Fetch sml library

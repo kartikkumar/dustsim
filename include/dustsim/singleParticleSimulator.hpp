@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
+ * Copyright (c) 2009-2025 Kartik Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
@@ -20,16 +20,15 @@ namespace dustsim
 /*!
  * Executes a single dust particle simulation.
  *
- * This function is called when the user specifies the application mode to be
- * "single_particle_simulator".
+ * This function is called when the user specifies the application mode to be "single".
  *
  * @param[in]  config  User-defined configuration options (extracted from JSON input file)
  */
 void executeSingleParticleSimulator(const nlohmann::json& config);
 
-//! Input for single_particle_simulator application mode.
+//! Input for single particle simulator application mode.
 /*!
- * Data struct containing all valid input parameters to execute the single_particle_simulator
+ * Data struct containing all valid input parameters to execute the single particle simulator
  * application mode. This struct is populated by the checkSingleParticleSimulatorInput() function.
  *
  * @sa checkSingleParticleSimulatorInput, executeSingleParticleSimulator
@@ -193,7 +192,7 @@ protected:
 private:
 };
 
-//! Check input parameters for single_particle_simulator application mode.
+//! Check input parameters for single particle simulator application mode.
 /*!
  * Checks that all inputs to execute a single dust particle simulation are valid. If not, an error
  * is thrown with a short description of the problem. If all inputs are valid, a data struct
@@ -201,7 +200,7 @@ private:
  *
  * @sa executeSingleParticleSimulator, SingleParticleSimulatorInput
  * @param[in]  config  User-defined configuration options (extracted from JSON input file)
- * @return             Struct containing all valid input for single_particle_simulator application
+ * @return             Struct containing all valid input for single particle simulator application
  *                     mode
  */
 SingleParticleSimulatorInput checkSingleParticleSimulatorInput(const nlohmann::json& config);

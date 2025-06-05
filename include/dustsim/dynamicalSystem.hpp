@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2022 Kartik Kumar (me@kartikkumar.com)
+ * Copyright (c) 2009-2025 Kartik Kumar (me@kartikkumar.com)
  * Distributed under the MIT License.
  * See accompanying file LICENSE.md or copy at http://opensource.org/licenses/MIT
  */
@@ -96,27 +96,34 @@ public:
                                                                        j2Coefficient);
         }
 
-        // Add solar radiation pressure acceleration if model is set to active.
-        if (isRadiationPressureAccelerationModelActive)
-        {
-            // Compute unit vector to the Sun based on elapsed time.
-            // Inclination of central body around Sun is assumed to be zero.
-            const Real elapsedOrbitAngle = solarMeanMotion * time;
-            const Vector unitVectorToSun({std::cos(elapsedOrbitAngle),
-                                          std::sin(elapsedOrbitAngle),
-                                          0.0});
-            acceleration = acceleration
-                           + astro::computeCannonballRadiationPressureAcceleration(
-                                radiationPressure,
-                                radiationPressureCoefficient,
-                                unitVectorToSun,
-                                particleRadius,
-                                particleBulkDensity);
-        }
+        // // Add solar radiation pressure acceleration if model is set to active.
+        // if (isRadiationPressureAccelerationModelActive)
+        // {
+        //     // Compute unit vector to the Sun based on elapsed time.
+        //     // Inclination of central body around Sun is assumed to be zero.
+        //     // const Real elapsedOrbitAngle = solarMeanMotion * time;
+        //     // const Vector unitVectorToSun({std::cos(elapsedOrbitAngle),
+        //     //                               std::sin(elapsedOrbitAngle),
+        //     //                               0.0});
+        //     const Real distanceToSun = std::sqrt(state[0]*state[0]
+        //                                         +state[1]*state[1]
+        //                                         +state[2]*state[2]);
+        //     const Vector unitVectorToSun({state[0]/distanceToSun,
+        //                                   state[1]/distanceToSun,
+        //                                   state[2]/distanceToSun});
 
-        return State({state[3],
-                      state[4],
-                      state[5],
+        //     acceleration = acceleration
+        //                    + astro::computeCannonballRadiationPressureAcceleration(
+        //                         radiationPressure,
+        //                         radiationPressureCoefficient,
+        //                         unitVectorToSun,
+        //                         particleRadius,
+        //                         particleBulkDensity);
+        // }
+
+        return State({state[astro::xVelocityIndex],
+                      state[astro::yVelocityIndex],
+                      state[astro::zVelocityIndex],
                       acceleration[0],
                       acceleration[1],
                       acceleration[2]});
